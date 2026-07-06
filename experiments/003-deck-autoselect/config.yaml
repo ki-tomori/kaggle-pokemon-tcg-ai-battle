@@ -1,0 +1,22 @@
+experiment: 003-deck-autoselect
+description: >
+  Measure 1 of 3 parallel improvement attempts after experiment 002. Automates
+  energy-type selection instead of hardcoding Fire: build_optimized_mono_deck()
+  for all 8 standard energy types, empirically round-robin them against each
+  other (src/deck.py: select_best_energy_type_by_selfplay / build_best_mono_deck),
+  and evaluate the winner. Agent unchanged from 002 (agents.heuristic_v2_agent) —
+  isolates a deck-only change.
+agent: agents.heuristic_v2_agent
+final_deck_energy_type: WATER
+final_deck: data/decks/best_v3.csv
+n_matches: 200
+seed: 42
+branch: exp/003-deck-autoselect
+base_commit: 82df6347a0957867630756be70f05e8cd3d06504
+notes: >
+  Full round-robin across all 8 types (40 matches/pair) actually ranked FIRE
+  highest in aggregate win rate (70.8%), i.e. the deck already used in
+  experiment 002 -- but WATER beats FIRE head-to-head (57.3% over 150 matches),
+  a rock-paper-scissors-style intransitivity. Submitted WATER as the genuinely
+  new, locally-validated alternative rather than resubmitting the unchanged
+  Fire deck. See reports/003_writeup.md for the full round-robin table.

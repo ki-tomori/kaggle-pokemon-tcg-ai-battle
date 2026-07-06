@@ -1,0 +1,4 @@
+[flake8]
+max-line-length = 110
+# E203 (whitespace before ':') conflicts with black's slice formatting; black wins.
+extend-ignore = E203

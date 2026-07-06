@@ -3,10 +3,12 @@ from conftest import requires_sdk
 from config import DECK_SIZE
 from deck import (
     build_basic_mono_deck,
+    build_best_mono_deck,
     build_optimized_mono_deck,
     load_attack_pool,
     load_deck_csv,
     save_deck_csv,
+    select_best_energy_type_by_selfplay,
     validate_deck,
 )
 
@@ -42,6 +44,28 @@ def test_build_optimized_mono_deck_is_legal(card_pool):
     deck = build_optimized_mono_deck(card_pool, attack_pool, EnergyType.FIRE)
     assert len(deck) == DECK_SIZE
     assert validate_deck(deck, card_pool) == []
+
+
+@requires_sdk
+def test_build_best_mono_deck_is_legal(card_pool):
+    from agents.random_agent import agent as random_agent
+
+    attack_pool = load_attack_pool()
+    deck = build_best_mono_deck(card_pool, attack_pool, random_agent, n_matches=4, seed=1)
+    assert len(deck) == DECK_SIZE
+    assert validate_deck(deck, card_pool) == []
+
+
+@requires_sdk
+def test_select_best_energy_type_by_selfplay_returns_valid_type(card_pool):
+    from cg_bridge import EnergyType
+    from agents.random_agent import agent as random_agent
+
+    attack_pool = load_attack_pool()
+    energy_type = select_best_energy_type_by_selfplay(
+        card_pool, attack_pool, random_agent, n_matches=4, seed=1
+    )
+    assert isinstance(energy_type, EnergyType)
 
 
 @requires_sdk

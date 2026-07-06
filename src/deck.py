@@ -67,6 +67,124 @@ def build_basic_mono_deck(
     return deck[:DECK_SIZE]
 
 
+# The 8 standard TCG energy types; excludes COLORLESS/RAINBOW/TEAM_ROCKET, which
+# aren't attacker-defining types in the same sense (no "mono-Colorless" archetype).
+_STANDARD_ENERGY_TYPES = [
+    EnergyType.GRASS,
+    EnergyType.FIRE,
+    EnergyType.WATER,
+    EnergyType.LIGHTNING,
+    EnergyType.PSYCHIC,
+    EnergyType.FIGHTING,
+    EnergyType.DARKNESS,
+    EnergyType.METAL,
+]
+
+
+def select_best_energy_type(
+    card_pool: dict[int, CardData],
+    attack_pool: dict[int, Attack],
+    n_lines: int = 6,
+) -> EnergyType:
+    """Pick whichever standard energy type has the strongest available Basic
+    Pokémon lines, by summing the top n_lines basics' damage-per-energy efficiency.
+    Requires at least n_lines Basic Pokémon and a Basic Energy card of that type."""
+    best_type: EnergyType | None = None
+    best_score = -1.0
+    for energy_type in _STANDARD_ENERGY_TYPES:
+        basics = [
+            card
+            for card in card_pool.values()
+            if card.basic and card.energyType == energy_type and card.cardType == CardType.POKEMON
+        ]
+        if len(basics) < n_lines:
+            continue
+        has_energy_card = any(
+            card.cardType == CardType.BASIC_ENERGY and card.energyType == energy_type
+            for card in card_pool.values()
+        )
+        if not has_energy_card:
+            continue
+
+        top_effs = sorted((_attack_efficiency(c, attack_pool) for c in basics), reverse=True)[:n_lines]
+        score = sum(top_effs)
+        if score > best_score:
+            best_score = score
+            best_type = energy_type
+
+    if best_type is None:
+        raise ValueError("No standard energy type has enough Basic Pokémon + a Basic Energy card.")
+    logger.info("Best energy type by static efficiency score: %s (score=%.2f)", best_type, best_score)
+    return best_type
+
+
+def select_best_energy_type_by_selfplay(
+    card_pool: dict[int, CardData],
+    attack_pool: dict[int, Attack],
+    agent_fn,
+    n_lines: int = 6,
+    n_matches: int = 40,
+    seed: int = 0,
+) -> EnergyType:
+    """Pick the energy type empirically: build a mono deck per standard type and
+    round-robin them against each other with agent_fn on both sides, picking the
+    type with the best overall win rate.
+
+    select_best_energy_type()'s static damage-per-energy score is a poor proxy —
+    on this card pool it picked Fighting as "best," but Fighting lost ~70-80% of
+    self-play matches against a Fire or Water deck. Empirical self-play is slower
+    (a few seconds for ~30 matchups at n_matches=40) but doesn't have that failure mode.
+    """
+    from arena import play_n_matches  # deferred: arena imports deck, avoid a circular import
+
+    decks: dict[EnergyType, list[int]] = {}
+    for energy_type in _STANDARD_ENERGY_TYPES:
+        try:
+            deck = build_optimized_mono_deck(card_pool, attack_pool, energy_type, n_lines)
+        except ValueError:
+            continue
+        if validate_deck(deck, card_pool):
+            continue
+        decks[energy_type] = deck
+
+    if not decks:
+        raise ValueError("No standard energy type produced a legal deck.")
+
+    win_counts = {et: 0 for et in decks}
+    match_counts = {et: 0 for et in decks}
+    types = list(decks)
+    for i, type_a in enumerate(types):
+        for type_b in types[i + 1 :]:
+            stats = play_n_matches(agent_fn, agent_fn, decks[type_a], decks[type_b], n=n_matches, seed=seed)
+            decided = stats.wins_a + stats.wins_b + stats.draws
+            win_counts[type_a] += stats.wins_a
+            win_counts[type_b] += stats.wins_b
+            match_counts[type_a] += decided
+            match_counts[type_b] += decided
+
+    win_rates = {et: (win_counts[et] / match_counts[et] if match_counts[et] else 0.0) for et in decks}
+    logger.info("Round-robin win rates by energy type: %s", win_rates)
+    return max(win_rates, key=win_rates.get)
+
+
+def build_best_mono_deck(
+    card_pool: dict[int, CardData],
+    attack_pool: dict[int, Attack],
+    agent_fn,
+    n_lines: int = 6,
+    n_draw_slots: int = N_DRAW_SUPPORT_SLOTS,
+    n_matches: int = 40,
+    seed: int = 0,
+) -> list[int]:
+    """build_optimized_mono_deck(), but auto-picks the energy type via empirical
+    self-play round-robin instead of the caller specifying one — see
+    select_best_energy_type_by_selfplay()."""
+    energy_type = select_best_energy_type_by_selfplay(
+        card_pool, attack_pool, agent_fn, n_lines, n_matches, seed
+    )
+    return build_optimized_mono_deck(card_pool, attack_pool, energy_type, n_lines, n_draw_slots)
+
+
 def load_attack_pool() -> dict[int, Attack]:
     """Load every attack the engine knows about, keyed by attack ID."""
     from cg_bridge import all_attack

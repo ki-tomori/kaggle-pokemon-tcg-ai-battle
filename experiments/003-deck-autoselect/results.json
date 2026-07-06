@@ -1,0 +1,39 @@
+{
+  "experiment": "003-deck-autoselect",
+  "recorded_at": "2026-07-06T12:33:27Z",
+  "base_commit": "82df6347a0957867630756be70f05e8cd3d06504",
+  "round_robin_win_rates": {
+    "GRASS": 0.4917,
+    "FIRE": 0.7083,
+    "WATER": 0.5792,
+    "LIGHTNING": null,
+    "PSYCHIC": 0.4292,
+    "FIGHTING": 0.375,
+    "DARKNESS": 0.375,
+    "METAL": 0.5417
+  },
+  "round_robin_n_matches_per_pair": 40,
+  "round_robin_seed": 99,
+  "lightning_note": "excluded: battle_start failed for every match (errorType=2), deck legality issue not caught by validate_deck -- unresolved, flagged for follow-up",
+  "water_vs_fire_head_to_head": {
+    "agent": "agents.heuristic_v2_agent",
+    "n_matches": 150,
+    "seed": 99,
+    "wins_water": 86,
+    "wins_fire": 64,
+    "water_win_rate": 0.5733
+  },
+  "final_submission": {
+    "agent": "agents.heuristic_v2_agent",
+    "deck": "data/decks/best_v3.csv (WATER)",
+    "vs_random": {
+      "n_matches": 200,
+      "seed": 42,
+      "wins_a": 170,
+      "wins_b": 29,
+      "draws": 1,
+      "aborted": 0,
+      "win_rate_a": 0.85
+    }
+  }
+}
