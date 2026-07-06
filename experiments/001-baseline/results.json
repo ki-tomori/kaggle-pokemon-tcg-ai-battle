@@ -1,0 +1,13 @@
+{
+  "experiment": "001-baseline",
+  "recorded_at": "2026-07-06T11:07:50Z",
+  "base_commit": "4801cfba4314ca0a123bee84917608204774bcea",
+  "agent_a": "agents.heuristic_agent",
+  "agent_b": "agents.random_agent",
+  "n_matches": 200,
+  "seed": 42,
+  "wins_a": 83,
+  "wins_b": 117,
+  "draws": 0,
+  "aborted": 0
+}
