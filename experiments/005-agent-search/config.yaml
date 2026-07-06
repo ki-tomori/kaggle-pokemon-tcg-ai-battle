@@ -1,0 +1,15 @@
+experiment: 005-agent-search
+description: >
+  Measure 3 of 3 parallel improvement attempts after experiment 002. Uses the
+  engine's cg.api.search_begin/search_step hypothetical-search API for a 1-ply
+  lookahead on MAIN-menu decisions (evaluated by prize progress, then HP
+  differential), falling back to heuristic_v2's static scoring elsewhere or on
+  any search failure. Hidden information (opponent's deck/hand/prizes, our own
+  unseen deck/prizes) is guessed, not known -- best-effort only. Deck unchanged
+  from 002 (data/decks/optimized_v2.csv, Fire) -- isolates an agent-only change.
+agent: agents.search_agent
+deck: data/decks/optimized_v2.csv
+n_matches: 200
+seed: 42
+branch: exp/005-agent-search
+base_commit: 82df6347a0957867630756be70f05e8cd3d06504

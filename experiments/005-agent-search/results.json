@@ -1,0 +1,24 @@
+{
+  "experiment": "005-agent-search",
+  "recorded_at": "2026-07-06T12:45:37Z",
+  "base_commit": "82df6347a0957867630756be70f05e8cd3d06504",
+  "n_matches": 200,
+  "seed": 42,
+  "runs": {
+    "search_agent_vs_random": {
+      "wins_a": 173,
+      "wins_b": 27,
+      "draws": 0,
+      "aborted": 0,
+      "win_rate_a": 0.865
+    },
+    "search_agent_vs_v2_same_deck": {
+      "wins_a": 106,
+      "wins_b": 94,
+      "draws": 0,
+      "aborted": 0,
+      "win_rate_a": 0.53
+    }
+  },
+  "one_match_wall_clock_seconds": 0.147
+}

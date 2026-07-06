@@ -4,7 +4,8 @@ from conftest import requires_sdk
 
 @requires_sdk
 @pytest.mark.parametrize(
-    "agent_module", ["agents.random_agent", "agents.heuristic_agent", "agents.heuristic_v2_agent"]
+    "agent_module",
+    ["agents.random_agent", "agents.heuristic_agent", "agents.heuristic_v2_agent", "agents.search_agent"],
 )
 def test_agent_returns_legal_selection(agent_module, sample_deck):
     import importlib
