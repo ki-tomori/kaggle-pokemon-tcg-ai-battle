@@ -1,0 +1,31 @@
+{
+  "experiment": "004-agent-defensive",
+  "recorded_at": "2026-07-06T12:39:10Z",
+  "base_commit": "82df6347a0957867630756be70f05e8cd3d06504",
+  "n_matches": 200,
+  "seed": 42,
+  "runs": {
+    "v3_vs_random": {
+      "wins_a": 178,
+      "wins_b": 22,
+      "draws": 0,
+      "aborted": 0,
+      "win_rate_a": 0.89
+    },
+    "v3_vs_v2_same_deck": {
+      "wins_a": 109,
+      "wins_b": 91,
+      "draws": 0,
+      "aborted": 0,
+      "win_rate_a": 0.545
+    },
+    "v3_vs_v2_same_deck_before_attach_fix": {
+      "wins_a": 79,
+      "wins_b": 121,
+      "draws": 0,
+      "aborted": 0,
+      "win_rate_a": 0.395,
+      "note": "first version's energy-attach targeting redirected energy to bench Pokemon purely by lowest shortfall, ignoring the active attacker's own race tempo -- regressed vs v2"
+    }
+  }
+}

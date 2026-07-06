@@ -1,0 +1,16 @@
+experiment: 004-agent-defensive
+description: >
+  Measure 2 of 3 parallel improvement attempts after experiment 002. Adds
+  defensive/resource-targeting logic on top of heuristic_v2_agent: conditional
+  retreat when critically damaged, healthiest-bench-first switching, and
+  energy-attach targeting that still prioritizes the active attacker (a first
+  version that targeted "whichever Pokemon needs least energy" regardless of
+  active/bench lost 39.5% head-to-head to v2 -- fixed by keeping the active
+  attacker's own tempo as the default). Deck unchanged from 002
+  (data/decks/optimized_v2.csv, Fire) -- isolates an agent-only change.
+agent: agents.heuristic_v3_agent
+deck: data/decks/optimized_v2.csv
+n_matches: 200
+seed: 42
+branch: exp/004-agent-defensive
+base_commit: 82df6347a0957867630756be70f05e8cd3d06504
