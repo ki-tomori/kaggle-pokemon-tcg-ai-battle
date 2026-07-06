@@ -138,11 +138,12 @@ pytest
 | # | Description | Win Rate vs Random | Branch | Notes |
 |---|---|---|---|---|
 | 001 | Baseline greedy heuristic agent | 41.5% (95% CI 34.9–48.4%) | `exp/001-baseline-arena` | See [reports/001_baseline_writeup.md](reports/001_baseline_writeup.md) — did not beat random; most matches decided by deck-out, not combat |
+| 002 | Efficiency-picked deck + draw support + lethal-aware agent (v2) | 86.5% (95% CI 81.1–90.6%) | `exp/002-heuristic-v2` | See [reports/002_baseline_writeup.md](reports/002_baseline_writeup.md) — the deck change alone explains most of the gain (v1 logic + new deck already hits 82.5%); v2 vs v1 on the same deck is a statistical tie |
 
 ## Results
 
-- **Best win rate vs. random**: 41.5% (experiment 001 — not yet beating the baseline)
-- **Leaderboard ranking**: —
+- **Best win rate vs. random**: 86.5% (experiment 002)
+- **Leaderboard ranking**: — (submitted; Kaggle resets skill rating to μ=600 on each resubmission, so ladder score needs games to converge before it's meaningful)
 
 ## Key Learnings
 
@@ -152,6 +153,11 @@ pytest
 - A greedy, lookahead-free heuristic isn't automatically better than random
   when the deck itself (not agent decisions) dominates how matches end (see
   experiment 001) — deck design and agent policy need to be evaluated together.
+- Confirmed in experiment 002: picking attackers by damage-per-energy and adding
+  card-draw support closed almost the entire gap by itself (41.5% -> 82.5% with
+  otherwise unchanged agent logic); a smarter attack-scoring agent added only a
+  further +4pp on top. Deck quality dominated agent sophistication here, matching
+  what the competition's community discussion says.
 
 ## Data & License Notice
 

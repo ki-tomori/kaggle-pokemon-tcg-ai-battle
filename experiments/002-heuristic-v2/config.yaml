@@ -1,0 +1,26 @@
+experiment: 002-heuristic-v2
+description: >
+  Deck + agent upgrade over experiment 001: pick Basic Pokémon by damage-per-energy
+  efficiency instead of pool order, add card-draw Item/Supporter cards to cut the
+  deck-out rate found in 001, and add lethal-detection/damage-aware attack scoring
+  to the heuristic agent.
+runs:
+  - name: v2_agent_vs_random
+    agent_a: agents.heuristic_v2_agent
+    agent_b: agents.random_agent
+    deck_a: data/decks/optimized_v2.csv
+    deck_b: data/decks/optimized_v2.csv
+  - name: v2_agent_vs_v1_agent_same_deck
+    agent_a: agents.heuristic_v2_agent
+    agent_b: agents.heuristic_agent
+    deck_a: data/decks/optimized_v2.csv
+    deck_b: data/decks/optimized_v2.csv
+  - name: v1_agent_new_deck_vs_random
+    agent_a: agents.heuristic_agent
+    agent_b: agents.random_agent
+    deck_a: data/decks/optimized_v2.csv
+    deck_b: data/decks/optimized_v2.csv
+n_matches: 200
+seed: 42
+branch: exp/002-heuristic-v2
+base_commit: 4740d31cdf7133c262d45c3d9df030310b7cfb83

@@ -12,13 +12,14 @@ import csv
 import logging
 from pathlib import Path
 
-from cg_bridge import CardData, CardType, EnergyType
+from cg_bridge import Attack, CardData, CardType, EnergyType
 from config import DECK_SIZE
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
 
 MAX_COPIES_PER_CARD = 4
+N_DRAW_SUPPORT_SLOTS = 8
 
 
 def load_card_pool() -> dict[int, CardData]:
@@ -66,6 +67,83 @@ def build_basic_mono_deck(
     return deck[:DECK_SIZE]
 
 
+def load_attack_pool() -> dict[int, Attack]:
+    """Load every attack the engine knows about, keyed by attack ID."""
+    from cg_bridge import all_attack
+
+    return {atk.attackId: atk for atk in all_attack()}
+
+
+def _attack_efficiency(card: CardData, attack_pool: dict[int, Attack]) -> float:
+    """Best damage-per-energy across a card's attacks; 0 if it has none we can price."""
+    best = 0.0
+    for attack_id in card.attacks:
+        atk = attack_pool.get(attack_id)
+        if atk is None or not atk.energies:
+            continue
+        best = max(best, atk.damage / len(atk.energies))
+    return best
+
+
+def build_optimized_mono_deck(
+    card_pool: dict[int, CardData],
+    attack_pool: dict[int, Attack],
+    energy_type: EnergyType,
+    n_lines: int = 6,
+    n_draw_slots: int = N_DRAW_SUPPORT_SLOTS,
+) -> list[int]:
+    """Build a mono-energy deck like build_basic_mono_deck(), but pick Basic Pokémon
+    by damage-per-energy efficiency (best first) instead of arbitrary pool order, and
+    add a handful of card-draw Item/Supporter cards to reduce decking out.
+
+    Experiment 001 found >50% of matches were decided by decking out rather than
+    combat — this targets that directly, on top of picking stronger attackers.
+    """
+    basics = [
+        card
+        for card in card_pool.values()
+        if card.basic and card.energyType == energy_type and card.cardType == CardType.POKEMON
+    ]
+    if not basics:
+        raise ValueError(f"No Basic Pokémon found for energy type {energy_type!r}.")
+    basics.sort(key=lambda c: (_attack_efficiency(c, attack_pool), -c.retreatCost, c.hp), reverse=True)
+    chosen = basics[:n_lines]
+
+    # Excludes ACE SPEC cards: the ACE SPEC limit is 1 total across the whole deck
+    # (not 1 per card ID), which doesn't mix cleanly with picking several distinct
+    # draw cards below — simplest to just not rely on ACE SPEC draw support here.
+    draw_cards = [
+        card
+        for card in card_pool.values()
+        if card.cardType in (CardType.ITEM, CardType.SUPPORTER)
+        and not card.aceSpec
+        and any("draw" in skill.text.lower() for skill in card.skills)
+    ]
+
+    energy_cards = [
+        card
+        for card in card_pool.values()
+        if card.cardType == CardType.BASIC_ENERGY and card.energyType == energy_type
+    ]
+    if not energy_cards:
+        raise ValueError(f"No Basic Energy card found for energy type {energy_type!r}.")
+    energy_card_id = energy_cards[0].cardId
+
+    deck: list[int] = []
+    for card in chosen:
+        deck.extend([card.cardId] * MAX_COPIES_PER_CARD)
+
+    remaining_for_draw = min(n_draw_slots, DECK_SIZE - len(deck))
+    n_draw_cards = max(1, len(draw_cards[: (remaining_for_draw // MAX_COPIES_PER_CARD) or 1]))
+    per_card = max(1, remaining_for_draw // n_draw_cards) if draw_cards else 0
+    for card in draw_cards[:n_draw_cards]:
+        take = 1 if card.aceSpec else min(MAX_COPIES_PER_CARD, per_card, DECK_SIZE - len(deck))
+        deck.extend([card.cardId] * take)
+
+    deck.extend([energy_card_id] * (DECK_SIZE - len(deck)))
+    return deck[:DECK_SIZE]
+
+
 def validate_deck(deck: list[int], card_pool: dict[int, CardData]) -> list[str]:
     """Return a list of legality violations; empty list means the deck looks legal."""
     violations: list[str] = []
@@ -89,18 +167,23 @@ def validate_deck(deck: list[int], card_pool: dict[int, CardData]) -> list[str]:
     for card_id in deck:
         counts[card_id] = counts.get(card_id, 0) + 1
 
+    total_ace_spec = 0
     for card_id, count in counts.items():
         card = card_pool.get(card_id)
         if card is None:
             continue
+        if card.aceSpec:
+            total_ace_spec += count
         if card.cardType == CardType.BASIC_ENERGY:
             continue
-        if card.aceSpec and count > 1:
-            violations.append(f"ACE SPEC card {card_id} ({card.name}) appears {count} times, max 1.")
-        elif count > MAX_COPIES_PER_CARD:
+        if not card.aceSpec and count > MAX_COPIES_PER_CARD:
             violations.append(
                 f"Card {card_id} ({card.name}) appears {count} times, max {MAX_COPIES_PER_CARD}."
             )
+
+    # The ACE SPEC limit is 1 card total across the whole deck, not 1 per card ID.
+    if total_ace_spec > 1:
+        violations.append(f"Deck has {total_ace_spec} ACE SPEC cards total, max 1 across the whole deck.")
 
     return violations
 

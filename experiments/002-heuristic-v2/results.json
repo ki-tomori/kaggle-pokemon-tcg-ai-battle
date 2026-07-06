@@ -1,0 +1,39 @@
+{
+  "experiment": "002-heuristic-v2",
+  "recorded_at": "2026-07-06T11:52:35Z",
+  "base_commit": "4740d31cdf7133c262d45c3d9df030310b7cfb83",
+  "n_matches": 200,
+  "seed": 42,
+  "runs": {
+    "v2_agent_vs_random": {
+      "agent_a": "agents.heuristic_v2_agent",
+      "agent_b": "agents.random_agent",
+      "deck_a": "data/decks/optimized_v2.csv",
+      "deck_b": "data/decks/optimized_v2.csv",
+      "wins_a": 173,
+      "wins_b": 27,
+      "draws": 0,
+      "aborted": 0
+    },
+    "v2_agent_vs_v1_agent_same_deck": {
+      "agent_a": "agents.heuristic_v2_agent",
+      "agent_b": "agents.heuristic_agent",
+      "deck_a": "data/decks/optimized_v2.csv",
+      "deck_b": "data/decks/optimized_v2.csv",
+      "wins_a": 98,
+      "wins_b": 102,
+      "draws": 0,
+      "aborted": 0
+    },
+    "v1_agent_new_deck_vs_random": {
+      "agent_a": "agents.heuristic_agent",
+      "agent_b": "agents.random_agent",
+      "deck_a": "data/decks/optimized_v2.csv",
+      "deck_b": "data/decks/optimized_v2.csv",
+      "wins_a": 165,
+      "wins_b": 35,
+      "draws": 0,
+      "aborted": 0
+    }
+  }
+}
