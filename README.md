@@ -184,6 +184,7 @@ pytest
 | 008 | Same agent as 007, repackaged as `.tar.gz` | n/a | pending | `exp/008-targz-packaging` |
 | 009 | Evolution-line deck (design + local results, not submitted) | 72% (best variant) | — | `exp/009-evolution-deck` |
 | 010 | Turn-sequencing fix: setup actions before non-lethal attack | **97.0%** | pending | `exp/010-attack-sequencing` |
+| 011 | Real deck extracted from Kaggle's official top-episode dataset | 84.7% (72.0% head-to-head vs 002's deck) | not submitted yet | `exp/011-meta-deck` |
 
 See `reports/*_writeup.md` and `experiments/*/` for full detail per experiment.
 

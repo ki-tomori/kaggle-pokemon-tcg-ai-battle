@@ -1,0 +1,23 @@
+{
+  "experiment": "011-meta-deck",
+  "recorded_at": "2026-07-07T12:08:14Z",
+  "base_commit": "956baa11af307e9461412540a723e8deab59428f",
+  "diagnostic_first_index_baseline": {
+    "description": "Sanity check on a Discussion claim that the engine's own option ordering is strong and naive re-scoring can lose to just picking index 0",
+    "b1_vs_random": 0.91,
+    "exp010_agent_vs_b1": 0.70,
+    "conclusion": "Our heuristic overrides are net-positive, not fighting the engine's ordering"
+  },
+  "meta_deck_card_composition": {
+    "n_distinct_cards": 18,
+    "categories": {"POKEMON": 5, "SUPPORTER": 4, "ITEM": 5, "TOOL": 1, "STADIUM": 1, "BASIC_ENERGY": 1, "SPECIAL_ENERGY": 1},
+    "evolution_line": "Basic(70hp) -> Stage1(100hp) -> Stage2 ex(320hp), energyType=DARKNESS",
+    "secondary_line": "Basic(70hp) -> Stage1(90hp), energyType=WATER"
+  },
+  "runs": {
+    "meta_deck_vs_random": {"wins": 127, "losses": 22, "draws": 1, "n": 150, "win_rate": 0.847},
+    "meta_deck_vs_old_optimized_v2_same_agent": {"wins_a": 108, "wins_b": 41, "draws": 1, "n": 150, "win_rate_a": 0.72}
+  },
+  "loss_reason_breakdown_vs_random_n60": {"prize_race": 41, "no_pokemon_in_play": 18, "deck_out": 1},
+  "note": "vs-random win rate (84.7%) is lower than exp010's simple deck (97%), but the direct head-to-head (72%) is a much larger, more reliable signal per the project's own established lesson (vs-random is a weak predictor of real strength). Loss reasons vs random are dominated by real combat outcomes (68%), not structural collapse -- the deck is fundamentally sound; the vs-random gap likely reflects the agent not fully exploiting the richer trainer package (Tool/Stadium/multi-Supporter decisions still fall back to generic flat scoring)."
+}

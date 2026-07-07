@@ -7,6 +7,7 @@ from deck import (
     build_optimized_mono_deck,
     load_attack_pool,
     load_deck_csv,
+    load_deck_from_episode_replay,
     save_deck_csv,
     validate_deck,
 )
@@ -80,3 +81,17 @@ def test_validate_deck_flags_multiple_ace_specs(card_pool):
     deck = [ace_specs[0].cardId, ace_specs[1].cardId] + [ace_specs[0].cardId] * (DECK_SIZE - 2)
     violations = validate_deck(deck, card_pool)
     assert any("ACE SPEC" in v for v in violations)
+
+
+@requires_sdk
+def test_load_deck_from_episode_replay(tmp_path, sample_deck):
+    """sample_deck is any legal 60-card deck; wrap it in a minimal synthetic
+    replay shaped like a real downloaded episode JSON (steps[1][agent_index].action)."""
+    import json
+
+    replay = {"steps": [[{"action": []}, {"action": []}], [{"action": sample_deck}, {"action": sample_deck}]]}
+    path = tmp_path / "fake_replay.json"
+    path.write_text(json.dumps(replay))
+
+    loaded = load_deck_from_episode_replay(path, agent_index=0)
+    assert loaded == sample_deck

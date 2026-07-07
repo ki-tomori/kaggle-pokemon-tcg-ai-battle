@@ -291,6 +291,24 @@ def load_deck_csv(path: Path | str) -> list[int]:
         return [int(row[0]) for row in csv.reader(f) if row]
 
 
+def load_deck_from_episode_replay(replay_json_path: Path | str, agent_index: int = 0) -> list[int]:
+    """Extract a real 60-card deck list from a downloaded top-episode replay
+    JSON (Kaggle's official CC0-licensed `pokemon-tcg-ai-battle-episodes-*`
+    datasets — see experiments/011-meta-deck/config.yaml for the exact episode
+    used). The deck-selection action (60 card IDs) is the `action` field of
+    the *second* step (index 1); the first step is the initial `select: None`
+    observation with an empty action, before either player has submitted a deck.
+    """
+    import json
+
+    with open(replay_json_path) as f:
+        replay = json.load(f)
+    deck = replay["steps"][1][agent_index]["action"]
+    if len(deck) != DECK_SIZE:
+        raise ValueError(f"Expected a {DECK_SIZE}-card deck action, got {len(deck)} cards.")
+    return deck
+
+
 def main() -> None:
     card_pool = load_card_pool()
     logger.info("Loaded %d cards.", len(card_pool))

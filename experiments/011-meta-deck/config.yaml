@@ -1,0 +1,21 @@
+experiment: 011-meta-deck
+description: >
+  Deck sourced from the official, CC0-licensed Kaggle dataset
+  kaggle/pokemon-tcg-ai-battle-episodes-2026-07-04 (part of the
+  pokemon-tcg-ai-battle-episodes-index series the host publishes daily,
+  explicitly "to help in reviewing replays as well as training agents").
+  Motivated by Discussion analysis (713608, 710361) showing real top decks
+  use a 2-3 stage evolution line plus a rich trainer package (multiple
+  Supporters/Items, a Tool, a Stadium) -- structurally very different from
+  this repo's prior decks (a handful of Basic attackers + 1-2 generic draw
+  cards). Extracted via the new deck.load_deck_from_episode_replay() from
+  episode 83709252 (agent_index=0), a mirror match where both real
+  competitors submitted the identical 60-card, 18-distinct-card list.
+agent: agents.heuristic_v2_agent (exp010's sequencing-fixed version, unchanged)
+deck: data/decks/meta_v1.csv (extracted, not hand-built)
+source_episode_id: 83709252
+source_dataset: kaggle/pokemon-tcg-ai-battle-episodes-2026-07-04
+n_matches: 150
+seed: 42
+branch: exp/011-meta-deck
+base_commit: 956baa11af307e9461412540a723e8deab59428f
