@@ -1,0 +1,20 @@
+experiment: 010-attack-sequencing
+description: >
+  Agent-side resource-planning fix, per the user's request to strengthen
+  energy/turn-sequencing logic instead of further deck tuning after exp009's
+  mixed results. Diagnosis: a MAIN select can legally offer ATTACK alongside
+  setup actions (ATTACH/EVOLVE/PLAY/ABILITY) when energy was attached in a
+  prior turn. Since attacking ends the turn, always attacking as soon as it's
+  legal (the prior scoring: non-lethal ATTACK = 100+damage, always above
+  ATTACH=70/PLAY=65/ABILITY=55/EVOLVE=90) throws away free setup value.
+  Measured empirically: ATTACK was offered alongside a setup action in 432 of
+  965 (45%) of this agent's own MAIN decisions in self-play. Fix: non-lethal
+  ATTACK now scores 45-54 (below all setup actions, above YES/NO/RETREAT/END);
+  lethal ATTACK is unchanged (always highest, ~1000+, since finishing the game
+  now is always correct regardless of what else is offered).
+agent: agents.heuristic_v2_agent (patched in place, on top of exp007's retreat-fix)
+deck: data/decks/optimized_v2.csv (unchanged)
+n_matches: 200
+seed: 42
+branch: exp/010-attack-sequencing
+base_commit: a7c70db829af864c0a70cc8b466016f5cbbd6c90

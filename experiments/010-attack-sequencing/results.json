@@ -1,0 +1,39 @@
+{
+  "experiment": "010-attack-sequencing",
+  "recorded_at": "2026-07-07T11:38:38Z",
+  "base_commit": "a7c70db829af864c0a70cc8b466016f5cbbd6c90",
+  "n_matches": 200,
+  "seed": 42,
+  "diagnostic": {
+    "main_selects_sampled": 965,
+    "main_selects_with_attack_and_setup_both_offered": 432,
+    "share": 0.448
+  },
+  "runs": {
+    "patched_vs_random": {
+      "wins": 194,
+      "losses": 6,
+      "draws": 0,
+      "aborted": 0,
+      "win_rate": 0.97
+    },
+    "patched_vs_exp007_pre_fix_same_deck": {
+      "wins_a": 140,
+      "wins_b": 60,
+      "draws": 0,
+      "aborted": 0,
+      "win_rate_a": 0.70
+    }
+  },
+  "loss_reason_share_after": {
+    "prize_race": 0.5,
+    "deck_out": 0.333,
+    "no_pokemon_in_play": 0.167
+  },
+  "comparison_to_prior_best": {
+    "exp007_vs_random": 0.92,
+    "exp007_vs_frozen_baseline_423": 0.535,
+    "exp010_vs_random": 0.97,
+    "exp010_vs_exp007": 0.70
+  }
+}

@@ -182,13 +182,15 @@ pytest
 | 005 | 1-ply search_begin/search_step lookahead agent | 86.5% | 348.0 | `exp/005-agent-search` |
 | 007 | Retreat-when-critical fix on the v2 baseline | 92.0% | 304.2 | `exp/007-retreat-fix` |
 | 008 | Same agent as 007, repackaged as `.tar.gz` | n/a | pending | `exp/008-targz-packaging` |
+| 009 | Evolution-line deck (design + local results, not submitted) | 72% (best variant) | — | `exp/009-evolution-deck` |
+| 010 | Turn-sequencing fix: setup actions before non-lethal attack | **97.0%** | pending | `exp/010-attack-sequencing` |
 
 See `reports/*_writeup.md` and `experiments/*/` for full detail per experiment.
 
 ## Results
 
-- **Best local win rate vs. random**: 92.0% (experiment 007)
-- **Best Kaggle public score so far**: 423.3 (experiment 002) — every later experiment scored *lower* despite winning more locally (see below)
+- **Best local win rate vs. random**: 97.0% (experiment 010) — also the largest single-change head-to-head win rate found (70.0% vs the immediately-prior agent, well above the 53-57% seen from every earlier tweak)
+- **Best Kaggle public score so far**: 423.3 (experiment 002) — every experiment between 002 and 010 scored *lower* despite winning more locally (see below)
 - **Real opponent win rate (from replay analysis)**: experiment 007 actually won only **6/20 (30%)** of its real Kaggle matches, despite 92% locally vs a random baseline — a large, now-confirmed gap between local self-play and the live ladder (see Submission Policy below and `reports/009_evolution_deck.md`)
 
 ## Submission Policy

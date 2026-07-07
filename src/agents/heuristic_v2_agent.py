@@ -3,6 +3,15 @@ Greedy heuristic agent v2: adds lethal detection and damage-aware attack scoring
 (including a crude weakness/resistance adjustment) on top of heuristic_agent's
 fixed action-type priority. Still no multi-turn lookahead.
 
+Sequencing note: a MAIN select can legally offer ATTACK alongside setup actions
+(ATTACH/EVOLVE/PLAY/ABILITY) at the same decision point when energy was already
+attached in a prior turn -- attacking ends the turn, so taking a setup action
+first and attacking afterward is free value an earlier version of this agent
+was leaving on the table by always attacking as soon as it was legal. Measured
+at ~45% of this agent's own MAIN decisions in self-play. Non-lethal ATTACK is
+scored below the setup-action tier for this reason; a lethal attack always
+still wins immediately regardless of what else is offered.
+
 Kaggle-portable: only stdlib + `cg.api` imports. This file is copied verbatim into
 a submission's main.py by src/package_submission.py — do not import from `src`.
 """
@@ -38,6 +47,10 @@ _DEFAULT_SCORE = 20.0
 _LETHAL_BONUS = 1000.0
 _CRITICAL_HP_FRACTION = 0.3
 _RETREAT_WHEN_CRITICAL_SCORE = 95.0
+# Non-lethal ATTACK sits just below ABILITY (55) so setup actions this turn
+# (EVOLVE/ATTACH/PLAY/ABILITY) all happen before attacking ends the turn.
+_NONLETHAL_ATTACK_BASE = 45.0
+_NONLETHAL_ATTACK_DAMAGE_CAP = 90
 
 
 def _read_deck_csv() -> list[int]:
@@ -114,7 +127,7 @@ def _score(option: Option, obs: Observation) -> float:
         opp_hp = _opponent_active_hp(obs)
         if opp_hp is not None and damage >= opp_hp:
             return _LETHAL_BONUS + damage
-        return 100.0 + damage
+        return _NONLETHAL_ATTACK_BASE + min(damage, _NONLETHAL_ATTACK_DAMAGE_CAP) / 10.0
     if option.type == OptionType.RETREAT:
         if _active_is_critical(obs) and _healthiest_bench_available(obs):
             return _RETREAT_WHEN_CRITICAL_SCORE
@@ -128,8 +141,9 @@ def _score(option: Option, obs: Observation) -> float:
 
 
 def agent(obs_dict: dict) -> list[int]:
-    """Implement a Pokémon TCG agent that prefers lethal attacks, then the highest-
-    damage attack available, then developing the board, over passing.
+    """Implement a Pokémon TCG agent that always takes a lethal attack first,
+    otherwise develops the board (evolve/attach/play/ability) before attacking
+    non-lethally, and only ends the turn once nothing better is available.
     """
     obs: Observation = to_observation_class(obs_dict)
     if obs.select is None:

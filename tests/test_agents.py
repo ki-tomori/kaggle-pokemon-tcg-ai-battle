@@ -3,6 +3,22 @@ from conftest import requires_sdk
 
 
 @requires_sdk
+def test_nonlethal_attack_scores_below_setup_actions():
+    """heuristic_v2_agent should finish EVOLVE/ATTACH/PLAY/ABILITY this turn
+    before taking a non-lethal ATTACK, since attacking ends the turn -- a MAIN
+    select offering both isn't rare (measured ~45% of this agent's own MAIN
+    decisions in self-play), so getting this ordering wrong is a real loss of
+    free value, not just a theoretical edge case."""
+    from cg.api import OptionType
+
+    from agents.heuristic_v2_agent import _NONLETHAL_ATTACK_BASE, _NONLETHAL_ATTACK_DAMAGE_CAP, _PRIORITY
+
+    max_nonlethal_attack_score = _NONLETHAL_ATTACK_BASE + _NONLETHAL_ATTACK_DAMAGE_CAP / 10.0
+    for setup_type in (OptionType.EVOLVE, OptionType.ATTACH, OptionType.PLAY, OptionType.ABILITY):
+        assert _PRIORITY[setup_type] > max_nonlethal_attack_score
+
+
+@requires_sdk
 @pytest.mark.parametrize(
     "agent_module", ["agents.random_agent", "agents.heuristic_agent", "agents.heuristic_v2_agent"]
 )
