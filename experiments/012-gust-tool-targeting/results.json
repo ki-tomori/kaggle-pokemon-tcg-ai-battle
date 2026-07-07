@@ -1,0 +1,23 @@
+{
+  "experiment": "012-gust-tool-targeting",
+  "recorded_at": "2026-07-07T12:22:43Z",
+  "base_commit": "2783c861487c73d361caf95ef5a4e8a198f353e9",
+  "deck_used_for_ablation": "data/decks/meta_v1.csv",
+  "ablation_isolated_n150_seed42": {
+    "only_attach_targeting": 0.46,
+    "only_gust_targeting": 0.473,
+    "only_damage_targeting": 0.393
+  },
+  "ablation_isolated_n350_seed7_revalidation": {
+    "only_attach_targeting": 0.511,
+    "only_gust_targeting": 0.491,
+    "note": "both statistically indistinguishable from 0.50 at this N -- the n150 reads were noise, per the Discussion-sourced eval-discipline lesson (revalidate at higher N before trusting a result)"
+  },
+  "damage_targeting_decision": "removed -- consistently and clearly negative across repeated tests, not just noise",
+  "final_agent_attach_and_gust_only": {
+    "vs_pre_fix_agent_n300_seed99": {"wins_a": 156, "wins_b": 140, "draws": 4, "win_rate_a": 0.52},
+    "vs_random_n200": {"wins": 161, "losses": 36, "draws": 3, "win_rate": 0.805},
+    "meta_v1_vs_optimized_v2_same_agent_n200": {"wins_a": 146, "wins_b": 54, "win_rate_a": 0.73}
+  },
+  "conclusion": "Gust-targeting and attach-targeting show no statistically significant effect on this deck (52% at n=300, within noise) -- kept as principled, harmless code, not a validated win. Damage-targeting was clearly harmful and removed. The meta_v1 deck's strength (~72-73% vs optimized_v2) is independently reconfirmed with this updated agent, matching exp011's finding with the pre-update agent -- this deck+agent combination is the strongest validated candidate so far."
+}

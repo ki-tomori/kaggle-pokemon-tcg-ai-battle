@@ -12,6 +12,19 @@ at ~45% of this agent's own MAIN decisions in self-play. Non-lethal ATTACK is
 scored below the setup-action tier for this reason; a lethal attack always
 still wins immediately regardless of what else is offered.
 
+Targeting note: richer decks (evolution lines, gust-style Supporters) present
+CARD selects where we choose an opponent's Pokemon, not just our own -- e.g.
+forcing a benched Pokemon active (SWITCH/TO_ACTIVE with the option's
+playerIndex pointing at the opponent). This previously fell back to a flat
+default score (picking whichever option happened to be listed first); see
+_gust_target_score. Energy/Tool attachment (_attach_target_score) similarly
+targets whichever of our own Pokemon most needs it, instead of scoring every
+ATTACH option identically. A DAMAGE-context targeting heuristic (prefer the
+opponent's lowest-HP Pokemon when a card effect lets us choose who takes
+damage) was also tried and measurably lost to the version without it
+(experiment 012) -- removed rather than kept on a plausible-sounding but
+empirically-negative rationale.
+
 Kaggle-portable: only stdlib + `cg.api` imports. This file is copied verbatim into
 a submission's main.py by src/package_submission.py — do not import from `src`.
 """
@@ -111,7 +124,7 @@ def _healthiest_bench_available(obs: Observation) -> bool:
 
 
 def _switch_target_score(option: Option, obs: Observation) -> float:
-    """When choosing which bench Pokemon becomes active, prefer the healthiest."""
+    """When choosing which of our own bench Pokemon becomes active, prefer the healthiest."""
     state = obs.current
     me = state.players[state.yourIndex]
     if option.area == AreaType.BENCH and option.index is not None and 0 <= option.index < len(me.bench):
@@ -119,6 +132,79 @@ def _switch_target_score(option: Option, obs: Observation) -> float:
         if pokemon is not None and pokemon.maxHp:
             return pokemon.hp / pokemon.maxHp * 100
     return _DEFAULT_SCORE
+
+
+_GUST_LOW_HP_THRESHOLD = 60.0
+
+
+def _gust_target_score(option: Option, obs: Observation) -> float:
+    """When a card effect (e.g. a Boss's-Orders-style Supporter) lets us force
+    one of the opponent's benched Pokemon into their Active Spot, prefer a
+    target we can likely follow up on: low HP (near a knockout), still a
+    Basic (denies a future evolution), already energized (denies their
+    investment), or a high retreat cost (harder for them to swap back out).
+    Per Discussion advice on this exact card category."""
+    state = obs.current
+    opponent = state.players[1 - state.yourIndex]
+    if not (
+        option.area == AreaType.BENCH and option.index is not None and 0 <= option.index < len(opponent.bench)
+    ):
+        return _DEFAULT_SCORE
+    pokemon = opponent.bench[option.index]
+    if pokemon is None:
+        return _DEFAULT_SCORE
+
+    score = 0.0
+    if pokemon.hp <= _GUST_LOW_HP_THRESHOLD:
+        score += 50.0
+    if pokemon.energies:
+        score += 20.0
+    card = _CARDS.get(pokemon.id)
+    if card is not None:
+        if card.basic:
+            score += 30.0
+        score += card.retreatCost * 5.0
+    score -= pokemon.hp * 0.1
+    return score
+
+
+def _energy_shortfall(pokemon_id: int, current_energy_count: int) -> int:
+    """How many more energy units the card's cheapest attack needs, big number if unknown."""
+    card = _CARDS.get(pokemon_id)
+    if card is None or not card.attacks:
+        return 999
+    best_needed = 999
+    for attack_id in card.attacks:
+        attack = _ATTACKS.get(attack_id)
+        if attack is None:
+            continue
+        needed = max(0, len(attack.energies) - current_energy_count)
+        best_needed = min(best_needed, needed)
+    return best_needed
+
+
+def _attach_target_score(option: Option, obs: Observation) -> float:
+    """Prefer powering up the active attacker (keeps the KO race tempo); only
+    redirect a Tool/Energy attachment to a bench Pokemon once the active no
+    longer needs more energy for its own attacks."""
+    state = obs.current
+    me = state.players[state.yourIndex]
+    target = None
+    is_active = option.inPlayArea == AreaType.ACTIVE
+    if is_active:
+        target = me.active[0] if me.active else None
+    elif option.inPlayArea == AreaType.BENCH and option.inPlayIndex is not None:
+        if 0 <= option.inPlayIndex < len(me.bench):
+            target = me.bench[option.inPlayIndex]
+    base = _PRIORITY[OptionType.ATTACH]
+    if target is None:
+        return base
+    shortfall = _energy_shortfall(target.id, len(target.energies))
+    if is_active:
+        return base + (5 if shortfall > 0 else 0)
+    if shortfall == 0:
+        return base - 10
+    return base - 5 + max(0, 5 - shortfall)
 
 
 def _score(option: Option, obs: Observation) -> float:
@@ -132,11 +218,15 @@ def _score(option: Option, obs: Observation) -> float:
         if _active_is_critical(obs) and _healthiest_bench_available(obs):
             return _RETREAT_WHEN_CRITICAL_SCORE
         return _PRIORITY[OptionType.RETREAT]
-    if option.type == OptionType.CARD and obs.select.context in (
-        SelectContext.SWITCH,
-        SelectContext.TO_ACTIVE,
-    ):
-        return _switch_target_score(option, obs)
+    if option.type == OptionType.ATTACH:
+        return _attach_target_score(option, obs)
+    if option.type == OptionType.CARD:
+        context = obs.select.context
+        if context in (SelectContext.SWITCH, SelectContext.TO_ACTIVE):
+            state = obs.current
+            if option.playerIndex is not None and option.playerIndex != state.yourIndex:
+                return _gust_target_score(option, obs)
+            return _switch_target_score(option, obs)
     return _PRIORITY.get(option.type, _DEFAULT_SCORE)
 
 
