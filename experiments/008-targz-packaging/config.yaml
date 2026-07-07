@@ -1,0 +1,21 @@
+experiment: 008-targz-packaging
+description: >
+  Not a strategy change. Tests whether submission archive format matters:
+  every prior submission (002/003/004/005/007) was a .zip; a competitor's
+  public repo (github.com/wmh/ptcg-abc) documents the expected format as
+  `submission.tar.gz` containing main.py/deck.csv/cg/ at the top level.
+  Repackages the exact same agent+deck as exp007 (agents.heuristic_v2_agent
+  + data/decks/optimized_v2.csv, unchanged) as .tar.gz via the newly added
+  src/package_submission.py --archive gztar option, and resubmits.
+agent: agents.heuristic_v2_agent (identical to exp007, unchanged)
+deck: data/decks/optimized_v2.csv (identical to exp007, unchanged)
+archive_format: gztar (.tar.gz)
+branch: exp/008-targz-packaging
+base_commit: 99f550d44e43a5728ab3f42cf0a65aa7e6994855
+caveat: >
+  This is a confounded test: the community's own "Leaderboard Scoring
+  Inconsistency" thread shows identical agents can score 150-400+ points
+  apart purely from matchmaking luck, so a different score here vs exp007
+  is not strong evidence either way on its own -- but if this submission
+  fails outright (never scores / errors), that would be a clear signal the
+  .zip format was the problem.

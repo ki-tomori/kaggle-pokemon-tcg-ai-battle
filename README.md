@@ -159,6 +159,12 @@ python src/package_submission.py \
   --agent src/agents/heuristic_agent.py --deck data/decks/baseline_v1.csv --name exp001-heuristic
 ```
 
+Also writes `submissions/<name>.tar.gz` by default (`--archive zip` for the
+`.zip` format used by early experiments, `--archive none` to skip archiving).
+A competitor's public write-up of this competition documents the expected
+upload shape as `submission.tar.gz` with `main.py`/`deck.csv`/`cg/` at the top
+level — see `experiments/008-targz-packaging/`.
+
 ### Run tests
 
 ```bash

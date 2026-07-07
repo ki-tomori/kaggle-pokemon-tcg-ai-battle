@@ -39,6 +39,19 @@ def package_submission(
     return out_dir
 
 
+def archive_submission(out_dir: Path, archive_format: str = "gztar") -> Path:
+    """Archive out_dir's contents (main.py/deck.csv/cg/ at the top level) into
+    submissions/<out_dir.name>.<ext> — default gztar (.tar.gz), matching the
+    format documented in a competitor's public write-up of this competition's
+    expected submission shape (`submission.tar.gz`). We'd previously only ever
+    submitted .zip; Kaggle accepting the upload doesn't confirm the judge can
+    unpack it, so this makes it easy to try the documented format instead."""
+    base_name = str(out_dir.parent / out_dir.name)
+    archive_path = shutil.make_archive(base_name, archive_format, root_dir=out_dir)
+    logger.info("Archived %s -> %s", out_dir, archive_path)
+    return Path(archive_path)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Package an agent into a Kaggle submission folder.")
     parser.add_argument(
@@ -46,10 +59,20 @@ def main() -> None:
     )
     parser.add_argument("--deck", required=True, help="Path to a deck CSV")
     parser.add_argument("--name", required=True, help="Output folder name under submissions/")
+    parser.add_argument(
+        "--archive",
+        choices=["gztar", "zip", "none"],
+        default="gztar",
+        help="Archive format to also produce (gztar -> .tar.gz, matching the documented upload "
+        "format; zip for the format used by earlier experiments; none to skip archiving)",
+    )
     args = parser.parse_args()
 
     out_dir = package_submission(Path(args.agent), Path(args.deck), args.name)
     logger.info("Contents: %s", sorted(p.name for p in out_dir.iterdir()))
+
+    if args.archive != "none":
+        archive_submission(out_dir, args.archive)
 
 
 if __name__ == "__main__":
