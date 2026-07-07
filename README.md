@@ -120,6 +120,38 @@ python src/arena.py \
 python src/evaluate.py --results experiments/001-baseline/results.json --name 001_win_rate
 ```
 
+### Evaluate baseline_423 locally (regression harness for future changes)
+
+`baseline_423` is the frozen reference point for future improvement work —
+the best-scoring submission so far (`agents.heuristic_v2_agent` +
+`data/decks/optimized_v2.csv`, exp002-heuristic-v2). See
+`experiments/baseline_423/manifest.yaml` and
+`reports/baseline_423_overview.md` for what it is and why it was recorded.
+
+```bash
+python src/evaluate_baseline.py --n-matches 200 --seed 42
+```
+
+Writes three files under `outputs/` (overwritten on each run):
+
+- `eval_results.csv` — one row per match (outcome, reason code, action count, who went first)
+- `loss_cases.csv` — just the losing matches, same columns
+- `loss_summary.md` — loss-reason breakdown and win rate
+
+Override the agent/deck/opponent to evaluate a candidate change against the
+same harness before deciding whether to promote it:
+
+```bash
+python src/evaluate_baseline.py \
+  --agent agents.my_candidate_agent --deck data/decks/my_candidate.csv \
+  --opponent agents.heuristic_v2_agent --opponent-deck data/decks/optimized_v2.csv \
+  --n-matches 200
+```
+
+Record the result as a new row in `experiments.csv` (repo root) — a running
+log of every local evaluation, independent of the more detailed per-experiment
+folders under `experiments/NNN-.../`.
+
 ### Package a submission
 
 ```bash

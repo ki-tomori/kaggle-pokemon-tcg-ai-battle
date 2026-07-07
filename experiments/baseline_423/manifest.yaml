@@ -1,0 +1,39 @@
+# baseline_423 — frozen reference snapshot of the best-scoring submission so far
+# (exp002-heuristic-v2). Used by src/evaluate_baseline.py as the fixed point of
+# comparison for future improvement work. Do not edit in place if the live
+# agent/deck later change -- record a new baseline_* snapshot instead.
+
+recorded_at: "2026-07-07T09:25:51Z"
+source_commit: 82df6347a0957867630756be70f05e8cd3d06504
+source_branch: exp/002-heuristic-v2
+
+agent:
+  live_module: agents.heuristic_v2_agent  # what src/evaluate_baseline.py imports today
+  frozen_copy: experiments/baseline_423/agent_snapshot.py  # exact source at recording time
+  description: >
+    Greedy heuristic, no lookahead: lethal-attack detection, damage-aware
+    attack scoring (crude weakness x2 / resistance -20), fixed priority table
+    for all other action types. See reports/baseline_423_overview.md for the
+    full breakdown.
+
+deck:
+  name: optimized_v2 (mono-Fire)
+  live_path: data/decks/optimized_v2.csv  # gitignored (data/); regenerate or use the snapshot below
+  build_recipe: >
+    deck.build_optimized_mono_deck(card_pool, attack_pool, EnergyType.FIRE)
+    -- see experiments/002-heuristic-v2/config.yaml for the original build
+  # Exact 60 card IDs at recording time, so this baseline is reproducible even
+  # without re-running the (should-be-deterministic) build recipe above.
+  card_ids: [46,46,46,46,490,490,490,490,794,794,794,794,259,259,259,259,99,99,99,99,573,573,573,573,1103,1103,1103,1103,1181,1181,1181,1181,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2]
+
+known_local_results:
+  # From experiments/002-heuristic-v2/results.json — recorded before this
+  # snapshot existed, reproduced here for convenience.
+  vs_random_n200_seed42:
+    wins_a: 173
+    wins_b: 27
+    draws: 0
+    aborted: 0
+    win_rate_a: 0.865
+
+kaggle_submission: submissions/exp002-heuristic-v2.zip  # not tracked by git (submissions/ is gitignored)

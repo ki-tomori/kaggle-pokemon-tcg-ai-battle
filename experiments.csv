@@ -1,0 +1,6 @@
+date,experiment_id,agent_module,deck,opponent,n_matches,win_rate,kaggle_submission,notes
+2026-07-02,001-baseline,agents.heuristic_agent,baseline_v1 (mono-Fire, no draw support),random_agent,200,0.415,exp001-heuristic,"Lost to random; >50% of matches decided by decking out, not combat"
+2026-07-06,002-heuristic-v2,agents.heuristic_v2_agent,optimized_v2 (mono-Fire + draw support),random_agent,200,0.865,exp002-heuristic-v2,"Best-scoring submission so far -- recorded as baseline_423"
+2026-07-06,003-deck-autoselect,agents.heuristic_v2_agent,best_v3 (mono-Water),random_agent,200,0.85,exp003-water-deck,"Water beats exp002 Fire deck head-to-head 57.3% (n=150) despite losing the full round-robin"
+2026-07-06,004-agent-defensive,agents.heuristic_v3_agent,optimized_v2 (same deck as 002),random_agent,200,0.89,exp004-defensive-v3,"54.5% head-to-head vs exp002 agent, same deck"
+2026-07-06,005-agent-search,agents.search_agent,optimized_v2 (same deck as 002),random_agent,200,0.865,exp005-search-agent,"53.0% head-to-head vs exp002 agent; 1-ply search_begin/search_step lookahead, near-even vs static heuristic"

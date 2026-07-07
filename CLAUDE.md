@@ -15,6 +15,7 @@ Kaggle コンペのポートフォリオリポジトリ。転職用に分析プ�
 | `experiments/` | 実験設定・ログ（YAML / JSON） |
 | `reports/` | 分析レポート・図表 |
 | `tests/` | pytest によるユニットテスト |
+| `outputs/` | ローカル評価ハーネスの出力（eval_results.csv 等。カード内容は含まないため git 管理対象） |
 | `submissions/` | Kaggle 提出ファイル（git 管理外） |
 | `data/` | データファイル（git 管理外） |
 
