@@ -1,0 +1,18 @@
+experiment: 007-retreat-fix
+description: >
+  Minimal, targeted fix on top of baseline_423 (agents.heuristic_v2_agent),
+  proposed from reading outputs/loss_summary.md's most common loss pattern
+  (prize_race, 50% of losses) and confirmed already validated in principle by
+  exp004's heuristic_v3_agent. Adds exactly two things to heuristic_v2_agent.py
+  itself (not a new agent file): (1) retreat when the active Pokemon's HP is
+  <=30% of max and a healthy bench Pokemon exists, instead of always
+  deprioritizing RETREAT; (2) when choosing which bench Pokemon becomes
+  active (SWITCH/TO_ACTIVE context), prefer the healthiest one instead of
+  falling back to "first option." Deck unchanged (data/decks/optimized_v2.csv).
+agent: agents.heuristic_v2_agent (patched in place)
+baseline_reference: experiments/baseline_423/agent_snapshot.py (frozen pre-fix copy)
+deck: data/decks/optimized_v2.csv
+n_matches: 200
+seed: 42
+branch: exp/007-retreat-fix
+base_commit: 04840dbd8321832731ef990041a7bafbb06456d9

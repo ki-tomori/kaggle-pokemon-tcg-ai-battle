@@ -9,7 +9,16 @@ a submission's main.py by src/package_submission.py — do not import from `src`
 
 import os
 
-from cg.api import Observation, Option, OptionType, all_attack, all_card_data, to_observation_class
+from cg.api import (
+    AreaType,
+    Observation,
+    Option,
+    OptionType,
+    SelectContext,
+    all_attack,
+    all_card_data,
+    to_observation_class,
+)
 
 _ATTACKS = {atk.attackId: atk for atk in all_attack()}
 _CARDS = {card.cardId: card for card in all_card_data()}
@@ -27,6 +36,8 @@ _PRIORITY: dict[OptionType, float] = {
 }
 _DEFAULT_SCORE = 20.0
 _LETHAL_BONUS = 1000.0
+_CRITICAL_HP_FRACTION = 0.3
+_RETREAT_WHEN_CRITICAL_SCORE = 95.0
 
 
 def _read_deck_csv() -> list[int]:
@@ -72,6 +83,31 @@ def _attack_damage(option: Option, obs: Observation) -> int:
     return damage
 
 
+def _active_is_critical(obs: Observation) -> bool:
+    state = obs.current
+    active = state.players[state.yourIndex].active
+    if not active or active[0] is None or not active[0].maxHp:
+        return False
+    return active[0].hp / active[0].maxHp <= _CRITICAL_HP_FRACTION
+
+
+def _healthiest_bench_available(obs: Observation) -> bool:
+    state = obs.current
+    bench = state.players[state.yourIndex].bench
+    return any(p is not None and p.hp > 0 for p in bench)
+
+
+def _switch_target_score(option: Option, obs: Observation) -> float:
+    """When choosing which bench Pokemon becomes active, prefer the healthiest."""
+    state = obs.current
+    me = state.players[state.yourIndex]
+    if option.area == AreaType.BENCH and option.index is not None and 0 <= option.index < len(me.bench):
+        pokemon = me.bench[option.index]
+        if pokemon is not None and pokemon.maxHp:
+            return pokemon.hp / pokemon.maxHp * 100
+    return _DEFAULT_SCORE
+
+
 def _score(option: Option, obs: Observation) -> float:
     if option.type == OptionType.ATTACK:
         damage = _attack_damage(option, obs)
@@ -79,6 +115,15 @@ def _score(option: Option, obs: Observation) -> float:
         if opp_hp is not None and damage >= opp_hp:
             return _LETHAL_BONUS + damage
         return 100.0 + damage
+    if option.type == OptionType.RETREAT:
+        if _active_is_critical(obs) and _healthiest_bench_available(obs):
+            return _RETREAT_WHEN_CRITICAL_SCORE
+        return _PRIORITY[OptionType.RETREAT]
+    if option.type == OptionType.CARD and obs.select.context in (
+        SelectContext.SWITCH,
+        SelectContext.TO_ACTIVE,
+    ):
+        return _switch_target_score(option, obs)
     return _PRIORITY.get(option.type, _DEFAULT_SCORE)
 
 

@@ -1,0 +1,40 @@
+{
+  "experiment": "007-retreat-fix",
+  "recorded_at": "2026-07-07T09:53:39Z",
+  "base_commit": "04840dbd8321832731ef990041a7bafbb06456d9",
+  "n_matches": 200,
+  "seed": 42,
+  "runs": {
+    "patched_vs_frozen_baseline_423": {
+      "wins_a": 107,
+      "wins_b": 93,
+      "draws": 0,
+      "aborted": 0,
+      "win_rate_a": 0.535
+    },
+    "patched_vs_random": {
+      "wins": 184,
+      "losses": 15,
+      "draws": 1,
+      "aborted": 0,
+      "win_rate": 0.92
+    },
+    "baseline_423_vs_random_same_seed_for_reference": {
+      "wins": 176,
+      "losses": 24,
+      "draws": 0,
+      "aborted": 0,
+      "win_rate": 0.88
+    }
+  },
+  "loss_reason_share_before": {
+    "prize_race": 0.5,
+    "deck_out": 0.417,
+    "no_pokemon_in_play": 0.083
+  },
+  "loss_reason_share_after": {
+    "deck_out": 0.467,
+    "prize_race": 0.333,
+    "no_pokemon_in_play": 0.2
+  }
+}
