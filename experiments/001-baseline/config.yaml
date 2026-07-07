@@ -1,0 +1,13 @@
+experiment: 001-baseline
+description: >
+  Smoke test of the full pipeline (deck -> local self-play -> win-rate eval ->
+  packaged submission): a greedy heuristic agent vs. the legal-random baseline,
+  both playing the same mono-Fire baseline deck.
+agent_a: agents.heuristic_agent
+agent_b: agents.random_agent
+deck_a: data/decks/baseline_v1.csv
+deck_b: data/decks/baseline_v1.csv
+n_matches: 200
+seed: 42
+branch: exp/001-baseline-arena
+base_commit: 4801cfba4314ca0a123bee84917608204774bcea

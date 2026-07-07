@@ -1,0 +1,25 @@
+# Core
+numpy>=1.26.0
+pandas>=2.1.0
+
+# Visualization
+matplotlib>=3.8.0
+
+# Notebook
+jupyter>=1.0.0
+ipykernel>=6.26.0
+nbstripout>=0.7.0
+
+# Testing
+pytest>=7.4.0
+
+# Utilities
+python-dotenv>=1.0.0
+tqdm>=4.66.0
+pyyaml>=6.0.1
+kaggle>=1.5.16
+
+# Code quality
+black>=23.11.0
+flake8>=6.1.0
+isort>=5.13.0
