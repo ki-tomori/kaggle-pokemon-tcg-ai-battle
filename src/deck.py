@@ -109,16 +109,40 @@ def build_optimized_mono_deck(
     basics.sort(key=lambda c: (_attack_efficiency(c, attack_pool), -c.retreatCost, c.hp), reverse=True)
     chosen = basics[:n_lines]
 
-    # Excludes ACE SPEC cards: the ACE SPEC limit is 1 total across the whole deck
-    # (not 1 per card ID), which doesn't mix cleanly with picking several distinct
-    # draw cards below — simplest to just not rely on ACE SPEC draw support here.
-    draw_cards = [
+    deck: list[int] = []
+    for card in chosen:
+        deck.extend([card.cardId] * MAX_COPIES_PER_CARD)
+
+    return _fill_draw_and_energy(deck, card_pool, energy_type, n_draw_slots)
+
+
+def _draw_support_cards(card_pool: dict[int, CardData]) -> list[CardData]:
+    """Item/Supporter cards whose text mentions "draw", excluding ACE SPEC (its
+    1-per-deck-total limit doesn't mix cleanly with picking several distinct cards)."""
+    return [
         card
         for card in card_pool.values()
         if card.cardType in (CardType.ITEM, CardType.SUPPORTER)
         and not card.aceSpec
         and any("draw" in skill.text.lower() for skill in card.skills)
     ]
+
+
+def _fill_draw_and_energy(
+    deck: list[int],
+    card_pool: dict[int, CardData],
+    energy_type: EnergyType,
+    n_draw_slots: int,
+) -> list[int]:
+    """Top up a partially-built deck (Pokémon lines already added) with draw
+    support first, then Basic Energy, up to DECK_SIZE."""
+    draw_cards = _draw_support_cards(card_pool)
+    remaining_for_draw = min(n_draw_slots, DECK_SIZE - len(deck))
+    n_draw_cards = max(1, len(draw_cards[: (remaining_for_draw // MAX_COPIES_PER_CARD) or 1]))
+    per_card = max(1, remaining_for_draw // n_draw_cards) if draw_cards else 0
+    for card in draw_cards[:n_draw_cards]:
+        take = min(MAX_COPIES_PER_CARD, per_card, DECK_SIZE - len(deck))
+        deck.extend([card.cardId] * take)
 
     energy_cards = [
         card
@@ -127,21 +151,83 @@ def build_optimized_mono_deck(
     ]
     if not energy_cards:
         raise ValueError(f"No Basic Energy card found for energy type {energy_type!r}.")
-    energy_card_id = energy_cards[0].cardId
+    deck.extend([energy_cards[0].cardId] * (DECK_SIZE - len(deck)))
+    return deck[:DECK_SIZE]
+
+
+def _evolution_lines(
+    card_pool: dict[int, CardData],
+    attack_pool: dict[int, Attack],
+    energy_type: EnergyType,
+) -> list[tuple[CardData, CardData]]:
+    """(basic, stage1) pairs of the given energy type where the Stage1's
+    evolvesFrom matches a Basic actually present in the card pool, ranked by
+    the Stage1's damage-per-energy efficiency (best first).
+
+    Real opponents observed via Kaggle replay analysis (experiment 007) run
+    evolved, Tool-equipped Pokémon dealing far more damage per turn than a
+    Basic-only deck can match (e.g. a single 170-damage hit) -- Stage1
+    attackers here reach 2-4x the efficiency of the best Basic attackers.
+    """
+    basics_by_name = {
+        c.name: c
+        for c in card_pool.values()
+        if c.basic and c.cardType == CardType.POKEMON and c.energyType == energy_type
+    }
+    stage1s = [
+        c
+        for c in card_pool.values()
+        if c.stage1
+        and c.cardType == CardType.POKEMON
+        and c.energyType == energy_type
+        and c.evolvesFrom in basics_by_name
+    ]
+    lines = [(basics_by_name[c.evolvesFrom], c) for c in stage1s]
+    lines.sort(key=lambda pair: _attack_efficiency(pair[1], attack_pool), reverse=True)
+    return lines
+
+
+def build_evolution_line_deck(
+    card_pool: dict[int, CardData],
+    attack_pool: dict[int, Attack],
+    energy_type: EnergyType,
+    n_lines: int = 2,
+    n_draw_slots: int = N_DRAW_SUPPORT_SLOTS,
+) -> list[int]:
+    """Build a mono-energy deck around n_lines distinct Basic->Stage1 evolution
+    lines (4 copies of each stage), picked by the Stage1 attack's damage-per-
+    energy efficiency, padded with draw support then Basic Energy.
+
+    Unlike build_optimized_mono_deck() (Basic-only), this can actually compete
+    with the evolved, Tool-equipped decks real opponents use — see
+    reports/009_evolution_deck.md. Requires the agent to handle EVOLVE options,
+    which the engine presents fully-specified (source + target already chosen)
+    within the same MAIN select, so no extra agent-side lookup is needed.
+    """
+    lines = _evolution_lines(card_pool, attack_pool, energy_type)
+    if not lines:
+        raise ValueError(f"No Basic->Stage1 evolution line found for energy type {energy_type!r}.")
+
+    # A Basic can be the pre-evolution of more than one Stage1 card (reprints/
+    # alternate forms sharing a name); skip lines that would reuse a Basic
+    # already chosen, since 4+4 copies of the same Basic ID would break the
+    # per-card copy limit.
+    chosen: list[tuple[CardData, CardData]] = []
+    used_basic_ids: set[int] = set()
+    for basic, stage1 in lines:
+        if basic.cardId in used_basic_ids:
+            continue
+        chosen.append((basic, stage1))
+        used_basic_ids.add(basic.cardId)
+        if len(chosen) == n_lines:
+            break
 
     deck: list[int] = []
-    for card in chosen:
-        deck.extend([card.cardId] * MAX_COPIES_PER_CARD)
+    for basic, stage1 in chosen:
+        deck.extend([basic.cardId] * MAX_COPIES_PER_CARD)
+        deck.extend([stage1.cardId] * MAX_COPIES_PER_CARD)
 
-    remaining_for_draw = min(n_draw_slots, DECK_SIZE - len(deck))
-    n_draw_cards = max(1, len(draw_cards[: (remaining_for_draw // MAX_COPIES_PER_CARD) or 1]))
-    per_card = max(1, remaining_for_draw // n_draw_cards) if draw_cards else 0
-    for card in draw_cards[:n_draw_cards]:
-        take = 1 if card.aceSpec else min(MAX_COPIES_PER_CARD, per_card, DECK_SIZE - len(deck))
-        deck.extend([card.cardId] * take)
-
-    deck.extend([energy_card_id] * (DECK_SIZE - len(deck)))
-    return deck[:DECK_SIZE]
+    return _fill_draw_and_energy(deck, card_pool, energy_type, n_draw_slots)
 
 
 def validate_deck(deck: list[int], card_pool: dict[int, CardData]) -> list[str]:

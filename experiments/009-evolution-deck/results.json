@@ -1,0 +1,26 @@
+{
+  "experiment": "009-evolution-deck",
+  "agent": "agents.heuristic_v2_agent (unchanged, exp007 version)",
+  "runs": {
+    "water_2lines_vs_random": {"n_matches": 100, "seed": 42, "win_rate": 0.62},
+    "water_2lines_vs_old_optimized_v2": {"n_matches": 100, "seed": 42, "win_rate": 0.30},
+    "fire_2lines_vs_random": {"n_matches": 100, "seed": 42, "win_rate": 0.27},
+    "fire_2lines_vs_old_optimized_v2": {"n_matches": 100, "seed": 42, "win_rate": 0.04},
+    "grass_2lines_vs_random": {"n_matches": 100, "seed": 42, "win_rate": 0.37},
+    "grass_2lines_vs_old_optimized_v2": {"n_matches": 100, "seed": 42, "win_rate": 0.01},
+    "psychic_2lines_vs_random": {"n_matches": 100, "seed": 42, "win_rate": 0.56},
+    "psychic_2lines_vs_old_optimized_v2": {"n_matches": 100, "seed": 42, "win_rate": 0.43},
+    "water_4lines_vs_random": {"n_matches": 100, "seed": 42, "win_rate": 0.72},
+    "water_4lines_vs_old_optimized_v2": {"n_matches": 100, "seed": 42, "win_rate": 0.49},
+    "fire_4lines_vs_random": {"n_matches": 100, "seed": 42, "win_rate": 0.41},
+    "fire_4lines_vs_old_optimized_v2": {"n_matches": 100, "seed": 42, "win_rate": 0.09},
+    "water_5lines_vs_random": {"n_matches": 150, "seed": 42, "win_rate": 0.58},
+    "water_5lines_vs_old_optimized_v2": {"n_matches": 150, "seed": 42, "win_rate": 0.453}
+  },
+  "loss_reason_breakdown": {
+    "fire_2lines_vs_random_n60": {"no_pokemon_in_play": 57, "prize_race": 3},
+    "water_4lines_vs_random_n60": {"prize_race": 23, "no_pokemon_in_play": 32, "deck_out": 5},
+    "water_5lines_vs_random_n60": {"no_pokemon_in_play": 13, "prize_race": 33, "deck_out": 14}
+  },
+  "conclusion": "No evolution-line deck variant tried so far clearly beats the Basic-only optimized_v2 (Fire) deck. Not submitted to Kaggle."
+}

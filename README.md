@@ -173,15 +173,51 @@ pytest
 
 ## Experiments
 
-| # | Description | Win Rate vs Random | Branch | Notes |
+| # | Description | Win Rate vs Random | Kaggle Public Score | Branch |
 |---|---|---|---|---|
-| 001 | Baseline greedy heuristic agent | 41.5% (95% CI 34.9–48.4%) | `exp/001-baseline-arena` | See [reports/001_baseline_writeup.md](reports/001_baseline_writeup.md) — did not beat random; most matches decided by deck-out, not combat |
-| 002 | Efficiency-picked deck + draw support + lethal-aware agent (v2) | 86.5% (95% CI 81.1–90.6%) | `exp/002-heuristic-v2` | See [reports/002_baseline_writeup.md](reports/002_baseline_writeup.md) — the deck change alone explains most of the gain (v1 logic + new deck already hits 82.5%); v2 vs v1 on the same deck is a statistical tie |
+| 001 | Baseline greedy heuristic agent | 41.5% | 135.0 | `exp/001-baseline-arena` |
+| 002 | Efficiency-picked deck + draw support + lethal-aware agent (v2) | 86.5% | 423.3 | `exp/002-heuristic-v2` |
+| 003 | Auto-selected Water deck (round-robin search) | 85.0% | 371.8 | `exp/003-deck-autoselect` |
+| 004 | Defensive/energy-targeting agent (v3) | 89.0% | 320.0 | `exp/004-agent-defensive` |
+| 005 | 1-ply search_begin/search_step lookahead agent | 86.5% | 348.0 | `exp/005-agent-search` |
+| 007 | Retreat-when-critical fix on the v2 baseline | 92.0% | 304.2 | `exp/007-retreat-fix` |
+| 008 | Same agent as 007, repackaged as `.tar.gz` | n/a | pending | `exp/008-targz-packaging` |
+
+See `reports/*_writeup.md` and `experiments/*/` for full detail per experiment.
 
 ## Results
 
-- **Best win rate vs. random**: 86.5% (experiment 002)
-- **Leaderboard ranking**: — (submitted; Kaggle resets skill rating to μ=600 on each resubmission, so ladder score needs games to converge before it's meaningful)
+- **Best local win rate vs. random**: 92.0% (experiment 007)
+- **Best Kaggle public score so far**: 423.3 (experiment 002) — every later experiment scored *lower* despite winning more locally (see below)
+- **Real opponent win rate (from replay analysis)**: experiment 007 actually won only **6/20 (30%)** of its real Kaggle matches, despite 92% locally vs a random baseline — a large, now-confirmed gap between local self-play and the live ladder (see Submission Policy below and `reports/009_evolution_deck.md`)
+
+## Submission Policy
+
+Local self-play win rate (against our own agents/decks) turned out to be a
+poor predictor of real Kaggle ladder performance — every experiment after 002
+scored *lower* on the leaderboard despite beating 002 locally, and spot-checking
+exp007's actual replays showed a 30% real win rate against a 92%-vs-random local
+number. Two causes, both confirmed via the competition's Discussion forum and
+direct replay inspection (`kaggle competitions replay <episode_id>`):
+
+1. **Scoring is highly noisy.** A well-upvoted Discussion thread ("Leaderboard
+   Scoring Inconsistency") documents identical agents scoring 150–400+ points
+   apart purely from early-matchmaking luck. Only the **latest 2 submissions**
+   stay active and keep playing games — submitting a new experiment stops the
+   older one from accumulating any more games, effectively freezing its score
+   wherever it happened to be.
+2. **All local validation was self-referential.** Every local win-rate number
+   in this repo came from our own agent playing our own (simple, Basic-only,
+   no-evolution) decks or earlier variants of itself. Real opponents run
+   evolution lines with Tools attached and hit far harder (one real loss ended
+   from a single 170-damage attack) — a mechanically richer deck category this
+   repo's decks never had to face locally.
+
+Going forward: **don't resubmit for every small change.** Validate locally
+with `src/evaluate_baseline.py` first; only submit a candidate once there's
+real confidence in it, and prefer submitting the same candidate to both active
+slots to average out matchmaking luck rather than treating a single score as
+ground truth.
 
 ## Key Learnings
 
