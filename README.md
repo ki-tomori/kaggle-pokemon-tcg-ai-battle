@@ -2,6 +2,29 @@
 
 > Kaggle competition solution developed as a data science / ML engineering portfolio project.
 
+## Highlights
+
+- **12 tracked experiments** (`experiments.csv`, `reports/*.md`), each with a
+  reproducible config, results, and a written interpretation — including
+  honest negative results (experiments 009, 012) reported as such rather than
+  reframed as wins.
+- **Diagnosed and fixed a real strategy gap using the platform's own live
+  data**: pulled real replays via the Kaggle API, found the agent losing 70%
+  of real matches despite 92% locally, and traced it to a turn-sequencing bug
+  affecting ~45% of its decisions — the single largest win-rate gain in the
+  project (experiments 007, 010).
+- **Sourced a competitive deck directly from Kaggle's official CC0 replay
+  dataset** instead of hand-derived heuristics, after discovering real top
+  decks are structurally unlike anything built by formula (experiment 011).
+- **Built a full local evaluation harness** (`src/evaluate_baseline.py`,
+  `src/arena.py`) so agent/deck changes are validated by self-play and
+  loss-reason analysis before ever touching a live submission.
+- Full write-up of *how* this repo is organized as both a working codebase
+  and a running research log: [`docs/architecture.md`](docs/architecture.md),
+  [`docs/strategy.md`](docs/strategy.md),
+  [`improvement/roadmap.md`](improvement/roadmap.md),
+  [`improvement/lessons_learned.md`](improvement/lessons_learned.md).
+
 ## Overview
 
 This project is a solution to the [Pokemon TCG AI Battle competition](https://www.kaggle.com/competitions/pokemon-tcg-ai-battle)
@@ -76,12 +99,23 @@ See [data/README.md](data/README.md) for download instructions — the data
 │   │   └── heuristic_agent.py
 │   ├── arena.py              # Local self-play match runner + win-rate stats
 │   ├── evaluate.py           # Win-rate summary (Wilson CI) + plotting
+│   ├── evaluate_baseline.py  # Regression harness vs a chosen opponent -> outputs/
 │   └── package_submission.py # Assemble a submissions/<name>/ folder
 ├── tests/                    # pytest — skips SDK-dependent cases if data/ isn't downloaded
 ├── experiments/               # Experiment configs + results (one folder per experiment id)
+│   ├── README.md              # Convention for this directory
+│   └── exp_template.md        # Copy this when writing up a new experiment
 ├── reports/                   # Write-ups + figures
 │   └── figures/
-├── submissions/                # Packaged submissions (not tracked by git)
+├── docs/
+│   ├── architecture.md        # How the code fits together, and why
+│   └── strategy.md            # Current best agent/deck + known gaps (living doc)
+├── improvement/
+│   ├── roadmap.md              # Prioritized backlog
+│   └── lessons_learned.md      # Consolidated lessons across all experiments
+├── outputs/                    # evaluate_baseline.py's latest run (tracked — no card content)
+├── submissions/                 # Packaged submissions (not tracked by git)
+├── .github/pull_request_template.md
 └── requirements.txt
 ```
 
@@ -192,7 +226,24 @@ See `reports/*_writeup.md` and `experiments/*/` for full detail per experiment.
 ## Results
 
 - **Best local win rate vs. random**: 97.0% (experiment 010) — also the largest single-change head-to-head win rate found (70.0% vs the immediately-prior agent, well above the 53-57% seen from every earlier tweak)
-- **Best Kaggle public score so far**: 423.3 (experiment 002) — every experiment between 002 and 010 scored *lower* despite winning more locally (see below)
+- **Kaggle public scores** (noisy — see Submission Policy below before reading too much into any single value):
+
+  | Submission | Public score |
+  |---|---|
+  | exp002 | 423.3 |
+  | exp003 | 371.8 |
+  | exp004 | 320.0 |
+  | exp005 | 348.0 |
+  | exp007 | 304.2 |
+  | exp008 (same agent as 007, `.tar.gz` instead of `.zip`) | 366.0 |
+  | exp010 (slot 1 / slot 2 — same candidate, both active slots) | 416.2 / 387.6 |
+  | exp012 | pending |
+
+  exp010's sequencing fix scored meaningfully higher than every submission
+  between it and exp002 (416.2, closing most of the gap back to exp002's
+  423.3) — consistent with it being the largest validated local improvement
+  in the project, though still within the range of matchmaking-luck variance
+  documented below.
 - **Real opponent win rate (from replay analysis)**: experiment 007 actually won only **6/20 (30%)** of its real Kaggle matches, despite 92% locally vs a random baseline — a large, now-confirmed gap between local self-play and the live ladder (see Submission Policy below and `reports/009_evolution_deck.md`)
 
 ## Submission Policy

@@ -6,14 +6,27 @@ Claude Code はこのファイルを読み、以下のルールに従って開�
 
 Kaggle コンペのポートフォリオリポジトリ。転職用に分析プロセス・実装力・再現性を示すことが目的。
 
+## Claude Code の「記憶」として — 作業開始前に必ず読むこと
+
+このリポジトリはClaude Codeが**セッションをまたいで参照する記憶装置**を兼ねている。新しい作業（特に新しい実験）を始める前に、必ず以下を読むこと。
+
+1. [`docs/strategy.md`](docs/strategy.md) — 現時点で何が有効と分かっているか（デッキ/エージェントの現状、既知のギャップ）の最新の統合版
+2. [`improvement/lessons_learned.md`](improvement/lessons_learned.md) — 過去に学んだ教訓（同じ失敗を繰り返さないため）
+3. [`improvement/roadmap.md`](improvement/roadmap.md) — 次にやるべきことの優先順位付きバックログ
+4. [`docs/architecture.md`](docs/architecture.md) — コードの構成・設計判断の理由
+
+作業を終えたら、変わった内容に応じてこれらのファイルを更新すること（会話の記憶だけに残さない）。実験のライフサイクル全体は [`experiments/README.md`](experiments/README.md) を参照。
+
 ## ディレクトリ構成ルール
 
 | ディレクトリ | 用途 |
 |---|---|
 | `src/` | 再利用可能な Python モジュール（本番想定コード） |
 | `notebooks/` | EDA・プロトタイピング用 Jupyter Notebook |
-| `experiments/` | 実験設定・ログ（YAML / JSON） |
-| `reports/` | 分析レポート・図表 |
+| `experiments/` | 実験設定・ログ（YAML / JSON）。詳細は `experiments/README.md` |
+| `reports/` | 分析レポート・図表（`experiments/exp_template.md` の形式に従う） |
+| `docs/` | アーキテクチャ・戦略ドキュメント（`architecture.md`, `strategy.md`） |
+| `improvement/` | 改善ロードマップ・教訓（`roadmap.md`, `lessons_learned.md`） |
 | `tests/` | pytest によるユニットテスト |
 | `outputs/` | ローカル評価ハーネスの出力（eval_results.csv 等。カード内容は含まないため git 管理対象） |
 | `submissions/` | Kaggle 提出ファイル（git 管理外） |
@@ -41,8 +54,9 @@ Kaggle コンペのポートフォリオリポジトリ。転職用に分析プ�
 
 - コミットメッセージは英語で書く（例: `feat: add feature engineering for card type`）
 - 1 コミット = 1 つの論理的な変更
-- 実験結果は `experiments/` にログを残してからコミットする
+- 実験結果は `experiments/` にログを残してからコミットする（形式は `experiments/exp_template.md` 参照）
 - `main` ブランチには直接コミットしない（実験は `exp/001-baseline` のようなブランチを切る）
+- PRを作成する場合は `.github/pull_request_template.md` に従う
 
 ## Kaggle 提出ルール
 
