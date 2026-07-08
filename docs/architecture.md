@@ -133,13 +133,43 @@ ways:
    assert invariants about the scoring constants directly — fast, no engine
    calls needed, and they fail loudly if a future edit reintroduces a bug
    this repo already paid to find and fix.
-2. **Self-play regression** via `evaluate_baseline.py` (not part of `pytest`,
-   run manually / from documented commands) — this is where actual agent
-   *behavior* is checked, always against the previous best (frozen in
-   `experiments/baseline_423/` and updated informally per experiment) rather
-   than only against `random_agent`, because vs-random win rate has
+2. **Self-play regression** via `evaluate_baseline.py` / `arena.py` (not part
+   of `pytest`, run manually / from documented commands) — this is where
+   actual agent *behavior* is checked, always head-to-head against the
+   immediately-prior agent version (extracted with `git show <commit>:path`,
+   since the agent is edited in place rather than versioned as separate
+   files) in addition to `random_agent`, because vs-random win rate has
    repeatedly proven to be a weak predictor of real strength (see
-   [lessons_learned.md](../improvement/lessons_learned.md)).
+   [lessons_learned.md](../improvement/lessons_learned.md)). `experiments/
+   baseline_423/` is a separate, deliberately frozen snapshot — one fixed
+   historical reference point (exp002), never updated — not the day-to-day
+   comparison target.
+
+## Worked example: diagnosing and fixing a real regression (experiments 007 → 010)
+
+A concrete illustration of the improvement loop this repo follows, since it's
+easier to see in one trace than described abstractly:
+
+1. **Local result looked good.** Experiment 007's retreat-timing fix reached
+   92% vs. `random_agent` locally — a real, validated local improvement.
+2. **Real result didn't match.** Submitted to Kaggle; `kaggle competitions
+   replay` on the actual match history showed only 6/20 (30%) real wins.
+   Locally-strong didn't mean actually-strong.
+3. **Root-caused with data, not guesswork.** Instrumented self-play to check
+   how often the agent's own MAIN decisions offered `ATTACK` at the same time
+   as a free setup action (`ATTACH`/`EVOLVE`/`PLAY`/`ABILITY`) — 44.8% of the
+   time. The agent was ending its own turns early.
+4. **Fixed the specific mechanism**, not the symptom: re-scored non-lethal
+   `ATTACK` below the setup-action tier (experiment 010), re-validated
+   locally (97% vs. random, 70% head-to-head vs. the pre-fix agent — the
+   largest single-change gain in the project), *then* submitted.
+5. **Confirmed on the real ladder**, not just locally: exp010 scored 416.2 /
+   387.6 on Kaggle — clearly higher than every submission between exp002 and
+   exp010, closing most of the gap back to exp002's 423.3.
+
+The pattern — local signal → real-data check → root cause → targeted fix →
+re-validate locally → submit → confirm on the real ladder — is the same loop
+`experiments/README.md`'s before/after checklist encodes for every experiment.
 
 ## Branching model
 

@@ -25,6 +25,21 @@
   [`improvement/roadmap.md`](improvement/roadmap.md),
   [`improvement/lessons_learned.md`](improvement/lessons_learned.md).
 
+![Local win rate vs. random across four milestone experiments: 41.5% (baseline) to 97.0% (sequencing fix)](reports/figures/win_rate_progression.png)
+
+### Skills demonstrated
+
+Reproducible experiment design (config + results + write-up per run,
+`experiments.csv` index) · statistical evaluation (Wilson confidence
+intervals, noise-floor revalidation at higher N) · reverse-engineering a
+platform's mechanics from data rather than docs alone (replay JSON, the
+`kaggle` CLI's undocumented-for-this-use forum/episode endpoints) ·
+root-causing a live-system regression (local-vs-real performance gap →
+replay analysis → turn-sequencing bug, not a stats artifact) · Python
+packaging discipline (a Kaggle-portability constraint enforced by
+convention and tests) · honest technical writing (negative results reported
+as negative, not reframed).
+
 ## Overview
 
 This project is a solution to the [Pokemon TCG AI Battle competition](https://www.kaggle.com/competitions/pokemon-tcg-ai-battle)
@@ -218,8 +233,8 @@ pytest
 | 008 | Same agent as 007, repackaged as `.tar.gz` | n/a | pending | `exp/008-targz-packaging` |
 | 009 | Evolution-line deck (design + local results, not submitted) | 72% (best variant) | — | `exp/009-evolution-deck` |
 | 010 | Turn-sequencing fix: setup actions before non-lethal attack | **97.0%** | pending | `exp/010-attack-sequencing` |
-| 011 | Real deck extracted from Kaggle's official top-episode dataset | 84.7% (72.0% head-to-head vs 002's deck) | not submitted yet | `exp/011-meta-deck` |
-| 012 | Gust/attach targeting for the richer options 011's deck exercises | 80.5% (73.0% head-to-head, neutral vs pre-change agent) | not submitted yet | `exp/012-gust-tool-targeting` |
+| 011 | Real deck extracted from Kaggle's official top-episode dataset | 84.7% (72.0% head-to-head vs 002's deck) | not submitted directly (see 012) | `exp/011-meta-deck` |
+| 012 | Gust/attach targeting + 011's deck, submitted as the combined candidate | 80.5% (73.0% head-to-head, neutral vs pre-change agent) | pending (slot 1; slot 2 blocked by the daily submission cap) | `exp/012-gust-tool-targeting` |
 
 See `reports/*_writeup.md` and `experiments/*/` for full detail per experiment.
 
@@ -267,6 +282,9 @@ direct replay inspection (`kaggle competitions replay <episode_id>`):
    evolution lines with Tools attached and hit far harder (one real loss ended
    from a single 170-damage attack) — a mechanically richer deck category this
    repo's decks never had to face locally.
+3. **There's a hard cap of 5 submissions/day**, discovered by hitting a `400`
+   error on a 6th attempt in one rolling day — not a bug, just the limit.
+   Submitting the same candidate to both active slots costs two of those five.
 
 Going forward: **don't resubmit for every small change.** Validate locally
 with `src/evaluate_baseline.py` first; only submit a candidate once there's
