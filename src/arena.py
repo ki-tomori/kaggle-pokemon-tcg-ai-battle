@@ -7,14 +7,26 @@ import argparse
 import importlib
 import logging
 from dataclasses import dataclass
+from typing import Callable
 
 import numpy as np
 from agents import AgentFn
-from cg_bridge import LogType, battle_finish, battle_select, battle_start, to_observation_class
+from cg_bridge import (
+    LogType,
+    Observation,
+    battle_finish,
+    battle_select,
+    battle_start,
+    to_observation_class,
+)
 from config import DEFAULT_N_MATCHES, MAX_ACTIONS_PER_MATCH, SEED
 from deck import load_deck_csv
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+SelectObserver = Callable[[Observation], None]
+
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 
@@ -49,12 +61,20 @@ def play_match(
     deck0: list[int],
     deck1: list[int],
     max_actions: int = MAX_ACTIONS_PER_MATCH,
+    select_observer: SelectObserver | None = None,
 ) -> MatchResult:
-    """Play one match between agent0 (player 0) and agent1 (player 1)."""
+    """Play one match between agent0 (player 0) and agent1 (player 1).
+
+    `select_observer`, if given, is called with the `Observation` at every select
+    decision before the acting agent picks — a hook for diagnostics (e.g. logging
+    which OptionTypes are simultaneously legal) without duplicating the match loop.
+    """
     obs_dict, start_data = battle_start(deck0, deck1)
     if obs_dict is None:
         logger.warning(
-            "battle_start failed (errorPlayer=%s, errorType=%s)", start_data.errorPlayer, start_data.errorType
+            "battle_start failed (errorPlayer=%s, errorType=%s)",
+            start_data.errorPlayer,
+            start_data.errorType,
         )
         return MatchResult(winner=-1, reason=None, n_actions=0, aborted=True)
 
@@ -69,12 +89,22 @@ def play_match(
                     None,
                 )
                 return MatchResult(
-                    winner=obs.current.result, reason=reason, n_actions=n_actions, aborted=False
+                    winner=obs.current.result,
+                    reason=reason,
+                    n_actions=n_actions,
+                    aborted=False,
                 )
 
             if n_actions >= max_actions:
-                logger.warning("Match aborted after hitting max_actions=%d.", max_actions)
-                return MatchResult(winner=-1, reason=None, n_actions=n_actions, aborted=True)
+                logger.warning(
+                    "Match aborted after hitting max_actions=%d.", max_actions
+                )
+                return MatchResult(
+                    winner=-1, reason=None, n_actions=n_actions, aborted=True
+                )
+
+            if select_observer is not None:
+                select_observer(obs)
 
             turn_idx = obs.current.yourIndex
             selection = agents[turn_idx](obs_dict)
@@ -94,6 +124,7 @@ def play_n_matches(
     deck_b: list[int],
     n: int = DEFAULT_N_MATCHES,
     seed: int = SEED,
+    select_observer: SelectObserver | None = None,
 ) -> ArenaStats:
     """Play n matches, alternating who plays first to cancel first-move advantage."""
     rng = np.random.default_rng(seed)
@@ -102,10 +133,14 @@ def play_n_matches(
     for i in range(n):
         a_goes_first = bool(rng.integers(0, 2))
         if a_goes_first:
-            result = play_match(agent_a, agent_b, deck_a, deck_b)
+            result = play_match(
+                agent_a, agent_b, deck_a, deck_b, select_observer=select_observer
+            )
             a_index = 0
         else:
-            result = play_match(agent_b, agent_a, deck_b, deck_a)
+            result = play_match(
+                agent_b, agent_a, deck_b, deck_a, select_observer=select_observer
+            )
             a_index = 1
 
         if result.aborted:
@@ -136,11 +171,23 @@ def _load_agent(dotted_path: str) -> AgentFn:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Run local self-play matches between two agents.")
-    parser.add_argument("--agent-a", required=True, help="Dotted module path, e.g. agents.heuristic_agent")
-    parser.add_argument("--agent-b", required=True, help="Dotted module path, e.g. agents.random_agent")
-    parser.add_argument("--deck-a", required=True, help="Path to a deck CSV for agent A")
-    parser.add_argument("--deck-b", required=True, help="Path to a deck CSV for agent B")
+    parser = argparse.ArgumentParser(
+        description="Run local self-play matches between two agents."
+    )
+    parser.add_argument(
+        "--agent-a",
+        required=True,
+        help="Dotted module path, e.g. agents.heuristic_agent",
+    )
+    parser.add_argument(
+        "--agent-b", required=True, help="Dotted module path, e.g. agents.random_agent"
+    )
+    parser.add_argument(
+        "--deck-a", required=True, help="Path to a deck CSV for agent A"
+    )
+    parser.add_argument(
+        "--deck-b", required=True, help="Path to a deck CSV for agent B"
+    )
     parser.add_argument("--n-matches", type=int, default=DEFAULT_N_MATCHES)
     parser.add_argument("--seed", type=int, default=SEED)
     args = parser.parse_args()
@@ -150,7 +197,9 @@ def main() -> None:
     deck_a = load_deck_csv(args.deck_a)
     deck_b = load_deck_csv(args.deck_b)
 
-    stats = play_n_matches(agent_a, agent_b, deck_a, deck_b, n=args.n_matches, seed=args.seed)
+    stats = play_n_matches(
+        agent_a, agent_b, deck_a, deck_b, n=args.n_matches, seed=args.seed
+    )
     logger.info(
         "Result: A wins=%d B wins=%d draws=%d aborted=%d win_rate_a=%.3f",
         stats.wins_a,

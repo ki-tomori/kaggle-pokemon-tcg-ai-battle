@@ -1,0 +1,237 @@
+{
+  "select_type_filter": null,
+  "n_selects_sampled": 26254,
+  "marginal_frequency": {
+    "END": {
+      "count": 26254,
+      "share": 1.0
+    },
+    "ABILITY": {
+      "count": 16578,
+      "share": 0.6314
+    },
+    "PLAY": {
+      "count": 14645,
+      "share": 0.5578
+    },
+    "RETREAT": {
+      "count": 12442,
+      "share": 0.4739
+    },
+    "ATTACK": {
+      "count": 5965,
+      "share": 0.2272
+    },
+    "ATTACH": {
+      "count": 5068,
+      "share": 0.193
+    },
+    "EVOLVE": {
+      "count": 3156,
+      "share": 0.1202
+    }
+  },
+  "conditional_cooccurrence": {
+    "ATTACH": {
+      "END": 1.0,
+      "PLAY": 0.8082,
+      "RETREAT": 0.2707,
+      "ABILITY": 0.8155,
+      "ATTACK": 0.2204,
+      "EVOLVE": 0.2358
+    },
+    "END": {
+      "ATTACH": 0.193,
+      "PLAY": 0.5578,
+      "RETREAT": 0.4739,
+      "ABILITY": 0.6314,
+      "EVOLVE": 0.1202,
+      "ATTACK": 0.2272
+    },
+    "PLAY": {
+      "ATTACH": 0.2797,
+      "END": 1.0,
+      "RETREAT": 0.4639,
+      "ABILITY": 0.7767,
+      "EVOLVE": 0.1429,
+      "ATTACK": 0.2514
+    },
+    "RETREAT": {
+      "END": 1.0,
+      "PLAY": 0.5461,
+      "ATTACH": 0.1103,
+      "ABILITY": 0.6633,
+      "ATTACK": 0.4431,
+      "EVOLVE": 0.0941
+    },
+    "ABILITY": {
+      "END": 1.0,
+      "PLAY": 0.6862,
+      "RETREAT": 0.4978,
+      "EVOLVE": 0.1398,
+      "ATTACH": 0.2493,
+      "ATTACK": 0.259
+    },
+    "EVOLVE": {
+      "ABILITY": 0.7345,
+      "END": 1.0,
+      "PLAY": 0.6632,
+      "ATTACH": 0.3786,
+      "ATTACK": 0.2408,
+      "RETREAT": 0.371
+    },
+    "ATTACK": {
+      "ABILITY": 0.7199,
+      "END": 1.0,
+      "PLAY": 0.6173,
+      "RETREAT": 0.9242,
+      "ATTACH": 0.1873,
+      "EVOLVE": 0.1274
+    }
+  },
+  "top_combos": [
+    {
+      "option_types": [
+        "END"
+      ],
+      "count": 3111,
+      "share": 0.1185
+    },
+    {
+      "option_types": [
+        "ABILITY",
+        "END",
+        "PLAY"
+      ],
+      "count": 2838,
+      "share": 0.1081
+    },
+    {
+      "option_types": [
+        "ABILITY",
+        "END",
+        "PLAY",
+        "RETREAT"
+      ],
+      "count": 2218,
+      "share": 0.0845
+    },
+    {
+      "option_types": [
+        "ABILITY",
+        "ATTACK",
+        "END",
+        "PLAY",
+        "RETREAT"
+      ],
+      "count": 1886,
+      "share": 0.0718
+    },
+    {
+      "option_types": [
+        "ABILITY",
+        "ATTACH",
+        "END",
+        "PLAY"
+      ],
+      "count": 1608,
+      "share": 0.0612
+    },
+    {
+      "option_types": [
+        "END",
+        "RETREAT"
+      ],
+      "count": 1604,
+      "share": 0.0611
+    },
+    {
+      "option_types": [
+        "ABILITY",
+        "END",
+        "RETREAT"
+      ],
+      "count": 1595,
+      "share": 0.0608
+    },
+    {
+      "option_types": [
+        "ABILITY",
+        "END"
+      ],
+      "count": 1560,
+      "share": 0.0594
+    },
+    {
+      "option_types": [
+        "END",
+        "PLAY"
+      ],
+      "count": 1095,
+      "share": 0.0417
+    },
+    {
+      "option_types": [
+        "ABILITY",
+        "ATTACK",
+        "END",
+        "RETREAT"
+      ],
+      "count": 904,
+      "share": 0.0344
+    },
+    {
+      "option_types": [
+        "ATTACK",
+        "END",
+        "RETREAT"
+      ],
+      "count": 875,
+      "share": 0.0333
+    },
+    {
+      "option_types": [
+        "END",
+        "PLAY",
+        "RETREAT"
+      ],
+      "count": 800,
+      "share": 0.0305
+    },
+    {
+      "option_types": [
+        "ABILITY",
+        "END",
+        "EVOLVE",
+        "PLAY"
+      ],
+      "count": 634,
+      "share": 0.0241
+    },
+    {
+      "option_types": [
+        "ATTACH",
+        "END",
+        "PLAY"
+      ],
+      "count": 604,
+      "share": 0.023
+    },
+    {
+      "option_types": [
+        "ABILITY",
+        "ATTACH",
+        "END",
+        "EVOLVE",
+        "PLAY"
+      ],
+      "count": 601,
+      "share": 0.0229
+    }
+  ],
+  "agent": "agents.heuristic_v2_agent",
+  "deck": "../data/decks/meta_v1.csv",
+  "n_matches": 300,
+  "seed": 42,
+  "recorded_at": "2026-07-09T11:41:29Z"
+}

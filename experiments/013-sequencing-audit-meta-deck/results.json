@@ -1,0 +1,55 @@
+{
+  "experiment": "013-sequencing-audit-meta-deck",
+  "recorded_at": "2026-07-09T11:48:29Z",
+  "base_commit": "8b624e95fcb1d8a4f905d696d5c7725c1e76febf",
+  "diagnostic_tool": "src/diagnose_sequencing.py (new, reusable via arena.play_match's select_observer hook)",
+  "cooccurrence_audit": {
+    "deck": "data/decks/meta_v1.csv",
+    "agent": "agents.heuristic_v2_agent (pre-change, exp012 tip)",
+    "n_matches": 300,
+    "seed": 42,
+    "main_selects_sampled": 26254,
+    "marginal_frequency_share": {
+      "END": 1.0,
+      "ABILITY": 0.631,
+      "PLAY": 0.558,
+      "RETREAT": 0.474,
+      "ATTACK": 0.227,
+      "ATTACH": 0.193,
+      "EVOLVE": 0.12
+    },
+    "highest_nontrivial_conditional_pair": {
+      "pair": ["ATTACK", "RETREAT"],
+      "p_retreat_given_attack_offered": 0.9242,
+      "note": "Far above any setup-action pair (e.g. ATTACH-ABILITY 0.82, PLAY-ABILITY 0.78) -- the pair the prior sequencing fix (exp010) never specifically examined, since exp010 only covered ATTACK vs setup actions."
+    },
+    "full_report": "experiments/013-sequencing-audit-meta-deck/diagnostics.json"
+  },
+  "mechanism_check": {
+    "question": "Does RETREAT end the turn, foreclosing that turn's ATTACK the way exp010 established non-lethal ATTACK does?",
+    "method": "Traced live matches: logged the select immediately following an agent-chosen RETREAT.",
+    "finding": "RETREAT does not end the turn (the next select is ENERGY, to pay the retreat cost, same turn/player) -- but it does foreclose the specific ATTACK option that belonged to the now-retreated (former) active, since attacks are tied to whichever Pokemon is currently active."
+  },
+  "hypothesis": "The prior fixed _RETREAT_WHEN_CRITICAL_SCORE (95) always preferred retreating a critical-HP active over any non-lethal ATTACK, regardless of the forgone attack's damage. Since RETREAT and ATTACK co-occur in 92% of ATTACK-offering selects, this is a frequent, consequential ordering decision. Fix: lower the constant to 50 (inside the non-lethal-ATTACK scoring band of 45-54) so a strong non-lethal attack can outrank a critical retreat, while a weak one still loses to it -- reusing the existing damage-based attack score rather than adding a new heuristic or threshold.",
+  "scope_check": {
+    "question": "How often does the changed branch (active critical AND both ATTACK and RETREAT offered) actually occur?",
+    "n_matches": 200,
+    "seed": 42,
+    "main_selects_sampled": 16852,
+    "attack_and_retreat_both_offered_share": 0.222,
+    "attack_and_retreat_both_offered_and_active_critical_share": 0.0257,
+    "note": "The decision this fix changes fires in only ~2.6% of MAIN selects -- a plausible reason a mirror-self-play win-rate signal would be small and hard to separate from noise even if the underlying logic is sound."
+  },
+  "validation": {
+    "method": "heuristic_v2_agent (post-fix) vs heuristic_v2_agent_pre013 (git show 8b624e95, pre-fix), both meta_v1 deck, arena.py head-to-head",
+    "runs": [
+      {"n_matches": 350, "seed": 42, "wins_a": 184, "wins_b": 154, "draws": 12, "win_rate_a": 0.526},
+      {"n_matches": 350, "seed": 123, "wins_a": 168, "wins_b": 176, "draws": 6, "win_rate_a": 0.48},
+      {"n_matches": 500, "seed": 7, "wins_a": 249, "wins_b": 237, "draws": 14, "win_rate_a": 0.498}
+    ],
+    "combined": {"n_matches": 1200, "wins_a": 601, "wins_b": 567, "draws": 32, "win_rate_a": 0.5145},
+    "vs_random_sanity_check": {"n_matches": 200, "seed": 42, "wins": 167, "losses": 29, "draws": 4, "win_rate": 0.835}
+  },
+  "conclusion": "Statistically neutral: 51.45% over n=1200 (three seeds), well short of the 53-57% 'mediocre improvement' bar exp010 established, let alone a strong result. Consistent with the scope check above -- the affected decision point is rare enough (~2.6% of MAIN selects) that any real effect is likely too small to detect at this N in mirror self-play. Kept the change (sound logic, no measured harm, replaces an unconditional constant with one that lets the existing damage score arbitrate) but NOT submitted to Kaggle -- does not clear the submission bar.",
+  "decision": "not_submitted"
+}

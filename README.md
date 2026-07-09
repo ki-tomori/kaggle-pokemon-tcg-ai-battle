@@ -186,6 +186,7 @@ pytest
 | 010 | Turn-sequencing fix: setup actions before non-lethal attack | **97.0%** | pending | `exp/010-attack-sequencing` |
 | 011 | Real deck extracted from Kaggle's official top-episode dataset | 84.7% (72.0% head-to-head vs 002's deck) | not submitted yet | `exp/011-meta-deck` |
 | 012 | Gust/attach targeting for the richer options 011's deck exercises | 80.5% (73.0% head-to-head, neutral vs pre-change agent) | not submitted yet | `exp/012-gust-tool-targeting` |
+| 013 | Reusable sequencing-audit tool + critical-retreat-vs-attack fix | 83.5% vs random (51.45% head-to-head over n=1200, neutral) | not submitted (below the mediocre-tweak bar) | `exp/013-sequencing-audit-meta-deck` |
 
 See `reports/*_writeup.md` and `experiments/*/` for full detail per experiment.
 

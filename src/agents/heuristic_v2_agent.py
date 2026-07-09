@@ -12,6 +12,19 @@ at ~45% of this agent's own MAIN decisions in self-play. Non-lethal ATTACK is
 scored below the setup-action tier for this reason; a lethal attack always
 still wins immediately regardless of what else is offered.
 
+Sequencing note 2 (experiment 013): a broader co-occurrence audit against
+meta_v1's fuller option space (src/diagnose_sequencing.py) found RETREAT
+offered alongside ATTACK in 92% of MAIN selects that offer ATTACK at all --
+by far the highest non-trivial pairing, well above any setup-action pair.
+Retreating a critical-HP active does not end the turn (confirmed by tracing
+live selects: the next select is an ENERGY select for the retreat cost, same
+turn/player), but it does forfeit that specific active's ATTACK option, since
+attacks are tied to whichever Pokemon is active. The prior fixed
+_RETREAT_WHEN_CRITICAL_SCORE (95) always preferred retreating regardless of
+how much damage the forgone attack would have dealt. It now sits inside the
+non-lethal ATTACK scoring band instead, so a strong non-lethal attack can
+outrank a critical retreat while a weak one still loses to it.
+
 Targeting note: richer decks (evolution lines, gust-style Supporters) present
 CARD selects where we choose an opponent's Pokemon, not just our own -- e.g.
 forcing a benched Pokemon active (SWITCH/TO_ACTIVE with the option's
@@ -59,7 +72,15 @@ _PRIORITY: dict[OptionType, float] = {
 _DEFAULT_SCORE = 20.0
 _LETHAL_BONUS = 1000.0
 _CRITICAL_HP_FRACTION = 0.3
-_RETREAT_WHEN_CRITICAL_SCORE = 95.0
+# Sits inside the non-lethal ATTACK scoring band (45-54, see below) rather than
+# above it: a critical-HP active still retreats away from a weak attack
+# opportunity, but a strong non-lethal attack (>=50 raw damage) now outranks
+# retreating, since that attack option is only available from the current
+# (about-to-retreat) active and is otherwise forfeited for the turn. See
+# experiment 013 -- RETREAT co-occurs with ATTACK in 92% of MAIN selects that
+# offer ATTACK at all, the highest non-trivial pairing measured, and retreating
+# always won regardless of the forgone attack's damage before this change.
+_RETREAT_WHEN_CRITICAL_SCORE = 50.0
 # Non-lethal ATTACK sits just below ABILITY (55) so setup actions this turn
 # (EVOLVE/ATTACH/PLAY/ABILITY) all happen before attacking ends the turn.
 _NONLETHAL_ATTACK_BASE = 45.0
@@ -127,7 +148,11 @@ def _switch_target_score(option: Option, obs: Observation) -> float:
     """When choosing which of our own bench Pokemon becomes active, prefer the healthiest."""
     state = obs.current
     me = state.players[state.yourIndex]
-    if option.area == AreaType.BENCH and option.index is not None and 0 <= option.index < len(me.bench):
+    if (
+        option.area == AreaType.BENCH
+        and option.index is not None
+        and 0 <= option.index < len(me.bench)
+    ):
         pokemon = me.bench[option.index]
         if pokemon is not None and pokemon.maxHp:
             return pokemon.hp / pokemon.maxHp * 100
@@ -147,7 +172,9 @@ def _gust_target_score(option: Option, obs: Observation) -> float:
     state = obs.current
     opponent = state.players[1 - state.yourIndex]
     if not (
-        option.area == AreaType.BENCH and option.index is not None and 0 <= option.index < len(opponent.bench)
+        option.area == AreaType.BENCH
+        and option.index is not None
+        and 0 <= option.index < len(opponent.bench)
     ):
         return _DEFAULT_SCORE
     pokemon = opponent.bench[option.index]
@@ -240,6 +267,10 @@ def agent(obs_dict: dict) -> list[int]:
         return _read_deck_csv()
 
     select = obs.select
-    ranked = sorted(range(len(select.option)), key=lambda i: _score(select.option[i], obs), reverse=True)
+    ranked = sorted(
+        range(len(select.option)),
+        key=lambda i: _score(select.option[i], obs),
+        reverse=True,
+    )
     k = max(select.minCount, min(select.maxCount, 1))
     return ranked[:k]
